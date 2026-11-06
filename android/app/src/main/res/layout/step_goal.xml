@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingStart="24dp"
+    android:paddingTop="28dp"
+    android:paddingEnd="24dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:letterSpacing="-0.02"
+        android:text="What is your goal?"
+        android:textColor="@color/text_slate_900"
+        android:textSize="28sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:lineSpacingExtra="3dp"
+        android:text="Your goal shapes your personalized calorie and macro targets."
+        android:textColor="@color/text_slate_500"
+        android:textSize="15sp" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/cardWeightLoss"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="28dp"
+        android:background="@drawable/bg_card_unselected"
+        android:clickable="true"
+        android:focusable="true"
+        android:padding="20dp">
+
+        <ImageView
+            android:id="@+id/ivIconWeightLoss"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_weight_loss"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvTitleWeightLoss"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:text="Lose Weight"
+            android:textColor="@color/text_slate_900"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@id/ivRadioWeightLoss"
+            app:layout_constraintStart_toEndOf="@id/ivIconWeightLoss"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="4dp"
+            android:text="Caloric deficit — 500 kcal below TDEE"
+            android:textColor="@color/text_slate_500"
+            android:textSize="13sp"
+            app:layout_constraintEnd_toStartOf="@id/ivRadioWeightLoss"
+            app:layout_constraintStart_toEndOf="@id/ivIconWeightLoss"
+            app:layout_constraintTop_toBottomOf="@id/tvTitleWeightLoss" />
+
+        <ImageView
+            android:id="@+id/ivRadioWeightLoss"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_radio_unselected"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/cardMaintain"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:background="@drawable/bg_card_unselected"
+        android:clickable="true"
+        android:focusable="true"
+        android:padding="20dp">
+
+        <ImageView
+            android:id="@+id/ivIconMaintain"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_maintenance"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvTitleMaintain"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:text="Maintain Weight"
+            android:textColor="@color/text_slate_900"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@id/ivRadioMaintain"
+            app:layout_constraintStart_toEndOf="@id/ivIconMaintain"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="4dp"
+            android:text="Eat at your TDEE — stay where you are"
+            android:textColor="@color/text_slate_500"
+            android:textSize="13sp"
+            app:layout_constraintEnd_toStartOf="@id/ivRadioMaintain"
+            app:layout_constraintStart_toEndOf="@id/ivIconMaintain"
+            app:layout_constraintTop_toBottomOf="@id/tvTitleMaintain" />
+
+        <ImageView
+            android:id="@+id/ivRadioMaintain"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_radio_unselected"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/cardMuscleGain"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:background="@drawable/bg_card_unselected"
+        android:clickable="true"
+        android:focusable="true"
+        android:padding="20dp">
+
+        <ImageView
+            android:id="@+id/ivIconMuscleGain"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_muscle_gain"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvTitleMuscleGain"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:text="Build Muscle"
+            android:textColor="@color/text_slate_900"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@id/ivRadioMuscleGain"
+            app:layout_constraintStart_toEndOf="@id/ivIconMuscleGain"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="4dp"
+            android:text="Caloric surplus — 350 kcal above TDEE"
+            android:textColor="@color/text_slate_500"
+            android:textSize="13sp"
+            app:layout_constraintEnd_toStartOf="@id/ivRadioMuscleGain"
+            app:layout_constraintStart_toEndOf="@id/ivIconMuscleGain"
+            app:layout_constraintTop_toBottomOf="@id/tvTitleMuscleGain" />
+
+        <ImageView
+            android:id="@+id/ivRadioMuscleGain"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_radio_unselected"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</LinearLayout>

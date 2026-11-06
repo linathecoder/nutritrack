@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -22,14 +23,14 @@ public class LogEntry {
 
     private double quantityG;
 
+    private Instant loggedAt = Instant.now();
+
     @Embedded
     private Nutrients computed;
-
 
     public void recompute() {
         computed = food.getPer100g().scale(quantityG / 100.0);
     }
-
 
     public void updateQuantity(double g) {
         if (g <= 0) throw new IllegalArgumentException("Quantity must be > 0");

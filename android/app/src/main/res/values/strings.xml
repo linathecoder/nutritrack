@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">NutriTrack</string>
+    <string name="onboarding_title">Nutrition, &lt;font color="#13EC49"&gt;Decoded.&lt;/font&gt;</string>
+    <string name="onboarding_subtitle">Instantly analyze ingredients and macros with a simple scan. Let our AI guide you toward smarter, healthier choices every day.</string>
+    <string name="onboarding_get_started">Get Started</string>
+    <string name="onboarding_already_account">Already have an account? &lt;font color="#0F172A"&gt;&lt;b&gt;Log In&lt;/b&gt;&lt;/font&gt;</string>
+
+    <string name="login_title">Welcome Back</string>
+    <string name="login_subtitle">Log in to track your meals, analyze ingredients, and hit your daily nutrition goals.</string>
+    <string name="login_btn">Log In</string>
+    <string name="login_no_account">Don\'t have an account? &lt;font color="#13EC49"&gt;&lt;b&gt;Sign Up&lt;/b&gt;&lt;/font&gt;</string>
+
+    <string name="signup_title">Create Account</string>
+    <string name="signup_subtitle">Start your journey toward decoded nutrition and personalized caloric targets.</string>
+    <string name="signup_btn">Create Account</string>
+    <string name="signup_has_account">Already have an account? &lt;font color="#13EC49"&gt;&lt;b&gt;Log In&lt;/b&gt;&lt;/font&gt;</string>
+    <string name="signup_terms">By creating an account, you agree to NutriTrack\'s Terms &amp; Privacy Policy.</string>
+
+    <string name="email_hint">Email address</string>
+    <string name="password_hint">Password</string>
+    <string name="confirm_password_hint">Confirm password</string>
+    <string name="session_expired">Your session has expired. Please log in again.</string>
+</resources>

@@ -18,6 +18,7 @@ public class UserProfile {
     @JsonIgnore
     private User user;
 
+    private String name;
     private double weightKg, heightCm;
     private int age;
 

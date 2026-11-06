@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary">#13EC49</color>
+    <color name="primary_variant">#0FDC42</color>
+    <color name="primary_shadow">#6613EC49</color>
+
+    <color name="background_light">#F6F8F6</color>
+    <color name="background_dark">#102215</color>
+    <color name="card_background">#FFFFFF</color>
+    <color name="text_slate_900">#0F172A</color>
+    <color name="text_slate_700">#334155</color>
+    <color name="text_slate_500">#64748B</color>
+    <color name="text_slate_400">#94A3B8</color>
+    <color name="slate_200">#E2E8F0</color>
+    <color name="slate_300">#CBD5E1</color>
+    <color name="slate_700">#334155</color>
+
+    <color name="macro_protein">#2563EB</color>
+    <color name="macro_carbs">#D97706</color>
+    <color name="macro_fat">#DB2777</color>
+
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="hero_start">#123829</color>
+    <color name="hero_mid">#1B4332</color>
+    <color name="hero_end">#144733</color>
+    <color name="hero_track">#2A5C46</color>
+    <color name="hero_label">#34D399</color>
+    <color name="hero_sub">#A7F3D0</color>
+    <color name="nav_active">#0B7A28</color>
+    <color name="nav_active_bg">#E7F8EC</color>
+    <color name="card_border">#E8EEEA</color>
+    <color name="macro_protein_bg">#EFF6FF</color>
+    <color name="macro_carbs_bg">#FFFBEB</color>
+    <color name="macro_fat_bg">#FDF2F8</color>
+    <color name="meal_breakfast_bg">#FFFBEB</color>
+    <color name="meal_lunch_bg">#ECFDF5</color>
+    <color name="meal_snack_bg">#FFF7ED</color>
+    <color name="meal_dinner_bg">#EEF2FF</color>
+    <color name="error_bg">#FEF2F2</color>
+    <color name="error_text">#B91C1C</color>
+</resources>

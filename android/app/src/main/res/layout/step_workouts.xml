@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:scrollbars="none">
+
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingStart="24dp"
+    android:paddingTop="28dp"
+    android:paddingEnd="24dp"
+    android:paddingBottom="16dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:letterSpacing="-0.02"
+        android:text="How often do you work out?"
+        android:textColor="@color/text_slate_900"
+        android:textSize="28sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:lineSpacingExtra="3dp"
+        android:text="Select how many times a week you do planned exercise, like the gym, running or sports"
+        android:textColor="@color/text_slate_500"
+        android:textSize="15sp" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/cardWorkoutNone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="28dp"
+        android:background="@drawable/bg_card_unselected"
+        android:clickable="true"
+        android:focusable="true"
+        android:padding="20dp">
+
+        <ImageView
+            android:id="@+id/ivIconWorkoutNone"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_couch"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvTitleWorkoutNone"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:text="I don't work out"
+            android:textColor="@color/text_slate_900"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@id/ivRadioWorkoutNone"
+            app:layout_constraintStart_toEndOf="@id/ivIconWorkoutNone"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="4dp"
+            android:text="No planned exercise during the week"
+            android:textColor="@color/text_slate_500"
+            android:textSize="13sp"
+            app:layout_constraintEnd_toStartOf="@id/ivRadioWorkoutNone"
+            app:layout_constraintStart_toEndOf="@id/ivIconWorkoutNone"
+            app:layout_constraintTop_toBottomOf="@id/tvTitleWorkoutNone" />
+
+        <ImageView
+            android:id="@+id/ivRadioWorkoutNone"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_radio_unselected"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/cardWorkoutOneTwo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:background="@drawable/bg_card_unselected"
+        android:clickable="true"
+        android:focusable="true"
+        android:padding="20dp">
+
+        <ImageView
+            android:id="@+id/ivIconWorkoutOneTwo"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_footsteps"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvTitleWorkoutOneTwo"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:text="1–2 times a week"
+            android:textColor="@color/text_slate_900"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@id/ivRadioWorkoutOneTwo"
+            app:layout_constraintStart_toEndOf="@id/ivIconWorkoutOneTwo"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="4dp"
+            android:text="Light training, a couple of sessions"
+            android:textColor="@color/text_slate_500"
+            android:textSize="13sp"
+            app:layout_constraintEnd_toStartOf="@id/ivRadioWorkoutOneTwo"
+            app:layout_constraintStart_toEndOf="@id/ivIconWorkoutOneTwo"
+            app:layout_constraintTop_toBottomOf="@id/tvTitleWorkoutOneTwo" />
+
+        <ImageView
+            android:id="@+id/ivRadioWorkoutOneTwo"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_radio_unselected"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/cardWorkoutThreeFour"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:background="@drawable/bg_card_unselected"
+        android:clickable="true"
+        android:focusable="true"
+        android:padding="20dp">
+
+        <ImageView
+            android:id="@+id/ivIconWorkoutThreeFour"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_skate"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvTitleWorkoutThreeFour"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:text="3–4 times a week"
+            android:textColor="@color/text_slate_900"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@id/ivRadioWorkoutThreeFour"
+            app:layout_constraintStart_toEndOf="@id/ivIconWorkoutThreeFour"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="4dp"
+            android:text="Regular training"
+            android:textColor="@color/text_slate_500"
+            android:textSize="13sp"
+            app:layout_constraintEnd_toStartOf="@id/ivRadioWorkoutThreeFour"
+            app:layout_constraintStart_toEndOf="@id/ivIconWorkoutThreeFour"
+            app:layout_constraintTop_toBottomOf="@id/tvTitleWorkoutThreeFour" />
+
+        <ImageView
+            android:id="@+id/ivRadioWorkoutThreeFour"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_radio_unselected"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/cardWorkoutFiveSix"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:background="@drawable/bg_card_unselected"
+        android:clickable="true"
+        android:focusable="true"
+        android:padding="20dp">
+
+        <ImageView
+            android:id="@+id/ivIconWorkoutFiveSix"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_muscle_gain"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvTitleWorkoutFiveSix"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:text="5–6 times a week"
+            android:textColor="@color/text_slate_900"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@id/ivRadioWorkoutFiveSix"
+            app:layout_constraintStart_toEndOf="@id/ivIconWorkoutFiveSix"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="4dp"
+            android:text="Intense, almost daily training"
+            android:textColor="@color/text_slate_500"
+            android:textSize="13sp"
+            app:layout_constraintEnd_toStartOf="@id/ivRadioWorkoutFiveSix"
+            app:layout_constraintStart_toEndOf="@id/ivIconWorkoutFiveSix"
+            app:layout_constraintTop_toBottomOf="@id/tvTitleWorkoutFiveSix" />
+
+        <ImageView
+            android:id="@+id/ivRadioWorkoutFiveSix"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_radio_unselected"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</LinearLayout>
+</ScrollView>
