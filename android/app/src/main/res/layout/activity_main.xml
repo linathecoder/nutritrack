@@ -158,10 +158,11 @@
 
                     <com.google.android.material.progressindicator.CircularProgressIndicator
                         android:id="@+id/progressCalories"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
+                        android:layout_width="84dp"
+                        android:layout_height="84dp"
                         android:max="100"
                         app:indicatorColor="@color/primary"
+                        app:indicatorInset="0dp"
                         app:indicatorSize="84dp"
                         app:trackColor="@color/hero_track"
                         app:trackCornerRadius="4dp"
@@ -339,150 +340,150 @@
             android:paddingStart="8dp"
             android:paddingEnd="8dp">
 
-        <LinearLayout
-            android:id="@+id/tabHome"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
+            <LinearLayout
+                android:id="@+id/tabHome"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
 
-            <FrameLayout
-                android:id="@+id/tabHomePill"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingStart="16dp"
-                android:paddingTop="3dp"
-                android:paddingEnd="16dp"
-                android:paddingBottom="3dp">
+                <FrameLayout
+                    android:id="@+id/tabHomePill"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="16dp"
+                    android:paddingTop="3dp"
+                    android:paddingEnd="16dp"
+                    android:paddingBottom="3dp">
 
-                <ImageView
-                    android:id="@+id/tabHomeIcon"
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:importantForAccessibility="no"
-                    android:src="@drawable/ic_nav_home" />
-            </FrameLayout>
+                    <ImageView
+                        android:id="@+id/tabHomeIcon"
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_nav_home" />
+                </FrameLayout>
 
-            <TextView
-                android:id="@+id/tabHomeLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="Home"
-                android:textSize="10sp"
-                android:textStyle="bold" />
-        </LinearLayout>
+                <TextView
+                    android:id="@+id/tabHomeLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="Home"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
 
-        <LinearLayout
-            android:id="@+id/tabDiary"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
+            <LinearLayout
+                android:id="@+id/tabDiary"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
 
-            <FrameLayout
-                android:id="@+id/tabDiaryPill"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingStart="16dp"
-                android:paddingTop="3dp"
-                android:paddingEnd="16dp"
-                android:paddingBottom="3dp">
+                <FrameLayout
+                    android:id="@+id/tabDiaryPill"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="16dp"
+                    android:paddingTop="3dp"
+                    android:paddingEnd="16dp"
+                    android:paddingBottom="3dp">
 
-                <ImageView
-                    android:id="@+id/tabDiaryIcon"
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:importantForAccessibility="no"
-                    android:src="@drawable/ic_nav_diary" />
-            </FrameLayout>
+                    <ImageView
+                        android:id="@+id/tabDiaryIcon"
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_nav_diary" />
+                </FrameLayout>
 
-            <TextView
-                android:id="@+id/tabDiaryLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="Diary"
-                android:textSize="10sp"
-                android:textStyle="bold" />
-        </LinearLayout>
+                <TextView
+                    android:id="@+id/tabDiaryLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="Diary"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
 
             <View
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1" />
 
-        <LinearLayout
-            android:id="@+id/tabAnalysis"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
+            <LinearLayout
+                android:id="@+id/tabAnalysis"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
 
-            <FrameLayout
-                android:id="@+id/tabAnalysisPill"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingStart="16dp"
-                android:paddingTop="3dp"
-                android:paddingEnd="16dp"
-                android:paddingBottom="3dp">
+                <FrameLayout
+                    android:id="@+id/tabAnalysisPill"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="16dp"
+                    android:paddingTop="3dp"
+                    android:paddingEnd="16dp"
+                    android:paddingBottom="3dp">
 
-                <ImageView
-                    android:id="@+id/tabAnalysisIcon"
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:importantForAccessibility="no"
-                    android:src="@drawable/ic_nav_analysis" />
-            </FrameLayout>
+                    <ImageView
+                        android:id="@+id/tabAnalysisIcon"
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_nav_analysis" />
+                </FrameLayout>
 
-            <TextView
-                android:id="@+id/tabAnalysisLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="Analysis"
-                android:textSize="10sp"
-                android:textStyle="bold" />
-        </LinearLayout>
+                <TextView
+                    android:id="@+id/tabAnalysisLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="Analysis"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
 
-        <LinearLayout
-            android:id="@+id/tabProfile"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
+            <LinearLayout
+                android:id="@+id/tabProfile"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
 
-            <FrameLayout
-                android:id="@+id/tabProfilePill"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingStart="16dp"
-                android:paddingTop="3dp"
-                android:paddingEnd="16dp"
-                android:paddingBottom="3dp">
+                <FrameLayout
+                    android:id="@+id/tabProfilePill"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="16dp"
+                    android:paddingTop="3dp"
+                    android:paddingEnd="16dp"
+                    android:paddingBottom="3dp">
 
-                <ImageView
-                    android:id="@+id/tabProfileIcon"
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:importantForAccessibility="no"
-                    android:src="@drawable/ic_nav_profile" />
-            </FrameLayout>
+                    <ImageView
+                        android:id="@+id/tabProfileIcon"
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_nav_profile" />
+                </FrameLayout>
 
-            <TextView
-                android:id="@+id/tabProfileLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="Profile"
-                android:textSize="10sp"
-                android:textStyle="bold" />
-        </LinearLayout>
+                <TextView
+                    android:id="@+id/tabProfileLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="Profile"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
 
         </LinearLayout>
 
