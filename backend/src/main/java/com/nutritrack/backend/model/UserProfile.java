@@ -24,5 +24,6 @@ public class UserProfile {
 
     @Enumerated(EnumType.STRING) private Sex sex;
     @Enumerated(EnumType.STRING) private ActivityLevel activityLevel;
+    @Enumerated(EnumType.STRING) private WorkoutFrequency workoutFrequency;
     @Enumerated(EnumType.STRING) private Goal goal;
 }

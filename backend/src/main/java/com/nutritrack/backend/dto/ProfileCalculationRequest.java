@@ -3,6 +3,7 @@ package com.nutritrack.backend.dto;
 import com.nutritrack.backend.model.ActivityLevel;
 import com.nutritrack.backend.model.Goal;
 import com.nutritrack.backend.model.Sex;
+import com.nutritrack.backend.model.WorkoutFrequency;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Getter;
@@ -32,6 +33,9 @@ public class ProfileCalculationRequest {
 
     @NotNull(message = "Activity level is required (SEDENTARY, LIGHT, MODERATE, ACTIVE)")
     private ActivityLevel activityLevel;
+
+    @NotNull(message = "Workout frequency is required (NONE, ONE_TWO, THREE_FOUR, FIVE_SIX)")
+    private WorkoutFrequency workoutFrequency;
 
     @NotNull(message = "Goal is required (WEIGHT_LOSS, MAINTENANCE, MUSCLE_GAIN)")
     private Goal goal;

@@ -3,6 +3,7 @@ package com.nutritrack.backend.service;
 import com.nutritrack.backend.model.ActivityLevel;
 import com.nutritrack.backend.model.Goal;
 import com.nutritrack.backend.model.Sex;
+import com.nutritrack.backend.model.WorkoutFrequency;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -23,6 +24,7 @@ public class CalorieCalculatorService {
             double heightCm,
             int age,
             ActivityLevel activityLevel,
+            WorkoutFrequency workoutFrequency,
             Goal goal
     ) {
         int effectiveAge = age > 0 ? age : 25;
@@ -34,12 +36,22 @@ public class CalorieCalculatorService {
             bmr -= 161.0;
         }
 
-        double multiplier = switch (activityLevel) {
+        double dailyActivityFactor = switch (activityLevel) {
             case SEDENTARY -> 1.2;
-            case LIGHT -> 1.375;
-            case MODERATE -> 1.55;
-            case ACTIVE -> 1.725;
+            case LIGHT -> 1.3;
+            case MODERATE -> 1.4;
+            case ACTIVE -> 1.5;
         };
+
+        WorkoutFrequency effectiveWorkouts = workoutFrequency != null ? workoutFrequency : WorkoutFrequency.NONE;
+        double workoutFactor = switch (effectiveWorkouts) {
+            case NONE -> 0.0;
+            case ONE_TWO -> 0.1;
+            case THREE_FOUR -> 0.2;
+            case FIVE_SIX -> 0.3;
+        };
+
+        double multiplier = dailyActivityFactor + workoutFactor;
         double tdee = bmr * multiplier;
 
         double targetCalories = switch (goal) {

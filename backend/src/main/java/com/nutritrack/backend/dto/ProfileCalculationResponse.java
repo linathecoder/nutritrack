@@ -3,6 +3,7 @@ package com.nutritrack.backend.dto;
 import com.nutritrack.backend.model.ActivityLevel;
 import com.nutritrack.backend.model.Goal;
 import com.nutritrack.backend.model.Sex;
+import com.nutritrack.backend.model.WorkoutFrequency;
 import lombok.*;
 
 import java.util.UUID;
@@ -24,6 +25,7 @@ public class ProfileCalculationResponse {
     private double heightCm;
     private int age;
     private ActivityLevel activityLevel;
+    private WorkoutFrequency workoutFrequency;
     private Goal goal;
 
     private double bmr;

@@ -33,6 +33,7 @@ public class ProfileService {
                 request.getHeightCm(),
                 age,
                 request.getActivityLevel(),
+                request.getWorkoutFrequency(),
                 request.getGoal()
         );
 
@@ -44,6 +45,7 @@ public class ProfileService {
                 .heightCm(request.getHeightCm())
                 .age(age)
                 .activityLevel(request.getActivityLevel())
+                .workoutFrequency(request.getWorkoutFrequency())
                 .goal(request.getGoal())
                 .bmr(calc.bmr())
                 .tdee(calc.tdee())
@@ -71,6 +73,7 @@ public class ProfileService {
                 request.getHeightCm(),
                 age,
                 request.getActivityLevel(),
+                request.getWorkoutFrequency(),
                 request.getGoal()
         );
 
@@ -87,6 +90,7 @@ public class ProfileService {
         profile.setHeightCm(request.getHeightCm());
         profile.setAge(age);
         profile.setActivityLevel(request.getActivityLevel());
+        profile.setWorkoutFrequency(request.getWorkoutFrequency());
         profile.setGoal(request.getGoal());
         UserProfile savedProfile = userProfileRepository.save(profile);
 
@@ -118,6 +122,7 @@ public class ProfileService {
                 .heightCm(savedProfile.getHeightCm())
                 .age(savedProfile.getAge())
                 .activityLevel(savedProfile.getActivityLevel())
+                .workoutFrequency(savedProfile.getWorkoutFrequency())
                 .goal(savedProfile.getGoal())
                 .bmr(calc.bmr())
                 .tdee(calc.tdee())
@@ -145,6 +150,7 @@ public class ProfileService {
                 profile.getHeightCm(),
                 profile.getAge(),
                 profile.getActivityLevel(),
+                profile.getWorkoutFrequency(),
                 profile.getGoal()
         );
 
@@ -158,6 +164,7 @@ public class ProfileService {
                 .heightCm(profile.getHeightCm())
                 .age(profile.getAge())
                 .activityLevel(profile.getActivityLevel())
+                .workoutFrequency(profile.getWorkoutFrequency())
                 .goal(profile.getGoal())
                 .bmr(calc.bmr())
                 .tdee(calc.tdee())
