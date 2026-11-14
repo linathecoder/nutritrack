@@ -22,4 +22,7 @@ interface NutriTrackApi {
 
     @GET("api/logs/today")
     suspend fun getTodayLog(): Response<DailyLogResponse>
+
+    @POST("api/logs")
+    suspend fun logFood(@Body request: LogFoodRequest): Response<LogEntryDto>
 }

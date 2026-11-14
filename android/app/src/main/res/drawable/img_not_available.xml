@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Cute "sorry, not available" illustration: a sad little face with a tear. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="160dp"
+    android:height="160dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+
+    <!-- soft background + ground shadow -->
+    <path android:fillColor="#F1F5F9" android:pathData="M100,100m-84,0a84,84 0 1,0 168,0a84,84 0 1,0 -168,0" />
+    <path android:fillColor="#140F172A" android:pathData="M100,168m-46,0a46,8 0 1,0 92,0a46,8 0 1,0 -92,0" />
+
+    <!-- face -->
+    <path android:fillColor="#FFFFFF" android:strokeColor="#CBD5E1" android:strokeWidth="4"
+        android:pathData="M100,100m-56,0a56,56 0 1,0 112,0a56,56 0 1,0 -112,0" />
+    <path android:fillColor="#F8FAFC" android:strokeColor="#E2E8F0" android:strokeWidth="3"
+        android:pathData="M100,100m-40,0a40,40 0 1,0 80,0a40,40 0 1,0 -80,0" />
+
+    <!-- worried eyebrows -->
+    <path android:strokeColor="#475569" android:strokeWidth="3.5" android:strokeLineCap="round"
+        android:pathData="M72,82L90,76M128,82L110,76" />
+
+    <!-- eyes with shine -->
+    <path android:fillColor="#0F172A" android:pathData="M84,98m-5,0a5,6 0 1,0 10,0a5,6 0 1,0 -10,0" />
+    <path android:fillColor="#0F172A" android:pathData="M116,98m-5,0a5,6 0 1,0 10,0a5,6 0 1,0 -10,0" />
+    <path android:fillColor="#FFFFFF" android:pathData="M85.8,95.5m-1.6,0a1.6,1.6 0 1,0 3.2,0a1.6,1.6 0 1,0 -3.2,0" />
+    <path android:fillColor="#FFFFFF" android:pathData="M117.8,95.5m-1.6,0a1.6,1.6 0 1,0 3.2,0a1.6,1.6 0 1,0 -3.2,0" />
+
+    <!-- blush -->
+    <path android:fillColor="#66F9A8D4" android:pathData="M70,112m-7,0a7,5 0 1,0 14,0a7,5 0 1,0 -14,0" />
+    <path android:fillColor="#66F9A8D4" android:pathData="M130,112m-7,0a7,5 0 1,0 14,0a7,5 0 1,0 -14,0" />
+
+    <!-- sad mouth -->
+    <path android:strokeColor="#0F172A" android:strokeWidth="3.5" android:strokeLineCap="round"
+        android:pathData="M89,124Q100,113 111,124" />
+
+    <!-- tear -->
+    <path android:fillColor="#7DD3FC"
+        android:pathData="M126,106C126,106 120,114 120,118a6,6 0 0,0 12,0C132,114 126,106 126,106Z" />
+
+    <!-- sparkles -->
+    <path android:fillColor="#CBD5E1" android:pathData="M160,38L163,46L171,49L163,52L160,60L157,52L149,49L157,46Z" />
+    <path android:fillColor="#CBD5E1" android:pathData="M42,40L44,45L49,47L44,49L42,54L40,49L35,47L40,45Z" />
+    <path android:fillColor="#E2E8F0" android:pathData="M176,128L177.5,131.5L181,133L177.5,134.5L176,138L174.5,134.5L171,133L174.5,131.5Z" />
+</vector>

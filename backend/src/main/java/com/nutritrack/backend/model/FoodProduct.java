@@ -15,6 +15,9 @@ public class FoodProduct {
     @Column(length = 4000)
     private String ingredients;
 
+    @Column(length = 1000)
+    private String imageUrl;
+
     @Embedded
     private Nutrients per100g;
 

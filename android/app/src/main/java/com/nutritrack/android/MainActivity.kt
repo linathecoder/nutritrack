@@ -1,5 +1,6 @@
 package com.nutritrack.android
 
+import android.content.Intent
 import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.View
@@ -10,6 +11,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.widget.ImageViewCompat
 import androidx.lifecycle.lifecycleScope
+import coil.load
 import com.nutritrack.android.data.api.ApiClient
 import com.nutritrack.android.data.model.DailyLogResponse
 import com.nutritrack.android.data.model.LogEntryDto
@@ -84,7 +86,9 @@ class MainActivity : AppCompatActivity() {
         binding.tabDiary.setOnClickListener {  }
         binding.tabAnalysis.setOnClickListener {  }
         binding.tabProfile.setOnClickListener {  }
-        binding.btnScan.setOnClickListener {  }
+        binding.btnScan.setOnClickListener {
+            startActivity(Intent(this, ScannerActivity::class.java))
+        }
         binding.btnLogMeal.setOnClickListener {  }
 
         binding.btnRetry.setOnClickListener { loadDashboard() }
@@ -195,18 +199,23 @@ class MainActivity : AppCompatActivity() {
         val timeFormat = DateTimeFormatter.ofPattern("h:mm a", Locale.getDefault())
         for (entry in entries) {
             val item = ItemMealBinding.inflate(layoutInflater, binding.mealsContainer, false)
-            val time = parseTime(entry.loggedAt)
-            val period = MealPeriod.of(time)
 
-            item.tvMealEmoji.text = period.emoji
-            item.tvMealEmoji.backgroundTintList = ColorStateList.valueOf(color(period.bgColor))
-            item.tvMealType.text = period.label
-            item.tvMealTime.text = time?.format(timeFormat).orEmpty()
+            // Photo of the scanned food; the "sorry" illustration when there is none (or it fails to load).
+            if (entry.imageUrl.isNullOrBlank()) {
+                item.ivMealImage.setImageResource(R.drawable.img_not_available)
+            } else {
+                item.ivMealImage.load(entry.imageUrl) {
+                    crossfade(true)
+                    error(R.drawable.img_not_available)
+                }
+            }
+
             item.tvMealName.text = entry.name?.takeIf { it.isNotBlank() } ?: "Unnamed food"
 
             val n = entry.computed ?: NutrientsDto()
             item.tvMealMeta.text =
                 "${n.calories.roundToInt()} kcal  •  ${n.proteinG.roundToInt()}g protein"
+            item.tvMealTime.text = parseTime(entry.loggedAt)?.format(timeFormat).orEmpty()
             item.tvMealQty.text = "${entry.quantityG.roundToInt()} g"
 
             binding.mealsContainer.addView(item.root)
@@ -217,23 +226,4 @@ class MainActivity : AppCompatActivity() {
         iso?.let { runCatching { Instant.parse(it).atZone(ZoneId.systemDefault()) }.getOrNull() }
 
     private fun color(res: Int) = ContextCompat.getColor(this, res)
-
-    private enum class MealPeriod(val label: String, val emoji: String, val bgColor: Int) {
-        BREAKFAST("Breakfast", "🥣", R.color.meal_breakfast_bg),
-        LUNCH("Lunch", "🥗", R.color.meal_lunch_bg),
-        SNACK("Snack", "🍎", R.color.meal_snack_bg),
-        DINNER("Dinner", "🍽️", R.color.meal_dinner_bg),
-        OTHER("Meal", "🍴", R.color.meal_snack_bg);
-
-        companion object {
-            fun of(time: ZonedDateTime?): MealPeriod = when (time?.hour) {
-                null -> OTHER
-                in 5..10 -> BREAKFAST
-                in 11..14 -> LUNCH
-                in 15..17 -> SNACK
-                in 18..23 -> DINNER
-                else -> SNACK
-            }
-        }
-    }
 }

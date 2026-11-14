@@ -13,11 +13,22 @@ data class LogEntryDto(
     val name: String?,
     val quantityG: Double = 0.0,
     val computed: NutrientsDto?,
-    val loggedAt: String?
+    val loggedAt: String?,
+    val imageUrl: String? = null
 )
 
 data class DailyLogResponse(
     val date: String?,
     val totals: NutrientsDto?,
     val entries: List<LogEntryDto>?
+)
+
+/** Body of POST api/logs: the product's nutrients per 100 g plus how much the user ate. */
+data class LogFoodRequest(
+    val barcode: String,
+    val name: String?,
+    val ingredients: String?,
+    val imageUrl: String?,
+    val per100g: NutrientsDto,
+    val quantityG: Double
 )
