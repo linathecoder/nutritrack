@@ -11,7 +11,6 @@ sealed interface ProductResult {
 
 object ProductRepository {
 
-    /** Looks a barcode up on Open Food Facts. Never throws (except cancellation). */
     suspend fun lookup(rawBarcode: String): ProductResult {
         val barcode = normalize(rawBarcode)
         return try {
@@ -36,7 +35,6 @@ object ProductRepository {
         }
     }
 
-    /** Keeps digits only; a 12-digit UPC-A is stored in Open Food Facts as a 13-digit code with a leading 0. */
     fun normalize(raw: String): String {
         val digits = raw.filter { it.isDigit() }
         return if (digits.length == 12) "0$digits" else digits

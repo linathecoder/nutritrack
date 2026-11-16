@@ -10,7 +10,6 @@ import androidx.core.content.ContextCompat
 import com.nutritrack.android.R
 import kotlin.math.min
 
-/** Ring split into protein / carbs / fat segments. Shares are fractions (0..1) of the whole ring. */
 class MacroDonutView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
@@ -53,7 +52,6 @@ class MacroDonutView @JvmOverloads constructor(
 
         canvas.drawArc(oval, 0f, 360f, false, trackPaint)
 
-        // Small gap between segments so the round caps don't overlap.
         val gap = 6f
         var start = -90f
         for ((share, p) in listOf(protein to proteinPaint, carbs to carbsPaint, fat to fatPaint)) {

@@ -19,9 +19,6 @@ import kotlin.math.PI
 import kotlin.math.min
 import kotlin.math.sin
 
-/**
- * Dimmed overlay with a clear rounded "scan window", green corner markers and an animated scan line.
- */
 class ScanOverlayView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
@@ -68,7 +65,6 @@ class ScanOverlayView @JvmOverloads constructor(
     }
 
     init {
-        // Needed so the CLEAR xfermode punches a real hole through the dim layer.
         setLayerType(LAYER_TYPE_HARDWARE, null)
     }
 
@@ -102,7 +98,6 @@ class ScanOverlayView @JvmOverloads constructor(
         canvas.drawRoundRect(frame, radius, radius, clearPaint)
         canvas.drawRoundRect(frame, radius, radius, borderPaint)
 
-        // Scan line, fading in/out at the ends of its sweep.
         canvas.save()
         canvas.clipPath(clipPath)
         val y = frame.top + progress * frame.height()
@@ -123,16 +118,12 @@ class ScanOverlayView @JvmOverloads constructor(
         val len = cornerLen
 
         cornerPath.reset()
-        // top-left
         cornerPath.moveTo(l, t + len); cornerPath.lineTo(l, t + rad)
         cornerPath.arcTo(l, t, l + 2 * rad, t + 2 * rad, 180f, 90f, false); cornerPath.lineTo(l + len, t)
-        // top-right
         cornerPath.moveTo(r - len, t); cornerPath.lineTo(r - rad, t)
         cornerPath.arcTo(r - 2 * rad, t, r, t + 2 * rad, 270f, 90f, false); cornerPath.lineTo(r, t + len)
-        // bottom-right
         cornerPath.moveTo(r, b - len); cornerPath.lineTo(r, b - rad)
         cornerPath.arcTo(r - 2 * rad, b - 2 * rad, r, b, 0f, 90f, false); cornerPath.lineTo(r - len, b)
-        // bottom-left
         cornerPath.moveTo(l + len, b); cornerPath.lineTo(l + rad, b)
         cornerPath.arcTo(l, b - 2 * rad, l + 2 * rad, b, 90f, 90f, false); cornerPath.lineTo(l, b - len)
         canvas.drawPath(cornerPath, cornerPaint)

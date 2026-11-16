@@ -27,5 +27,6 @@ public class DailyLogResponse {
         private Nutrients computed;
         private Instant loggedAt;
         private String imageUrl;
+        private String ingredients;
     }
 }

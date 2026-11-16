@@ -4,6 +4,7 @@ import android.content.Intent
 import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.View
+import android.view.MotionEvent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -17,6 +18,7 @@ import com.nutritrack.android.data.model.DailyLogResponse
 import com.nutritrack.android.data.model.LogEntryDto
 import com.nutritrack.android.data.model.NutrientsDto
 import com.nutritrack.android.data.model.ProfileCalculationResponse
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.nutritrack.android.data.session.SessionManager
 import com.nutritrack.android.databinding.ActivityMainBinding
 import com.nutritrack.android.databinding.ItemMacroCardBinding
@@ -26,9 +28,10 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 import java.text.NumberFormat
+import java.io.File
 import java.time.Instant
-import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -65,9 +68,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupStaticUi() {
-        binding.tvDate.text = LocalDate.now()
-            .format(DateTimeFormatter.ofPattern("EEEE, MMM d", Locale.getDefault()))
         setGreeting(session.getUserName())
+        loadProfilePhoto()
 
         bindMacroStatic(binding.cardProtein, "🥩", "Protein", R.color.macro_protein_bg)
         bindMacroStatic(binding.cardCarbs, "🌾", "Carbs", R.color.macro_carbs_bg)
@@ -80,23 +82,46 @@ class MainActivity : AppCompatActivity() {
         binding.tabHomePill.setBackgroundResource(R.drawable.bg_nav_pill)
         styleTab(binding.tabDiaryIcon, binding.tabDiaryLabel, active = false)
         styleTab(binding.tabAnalysisIcon, binding.tabAnalysisLabel, active = false)
-        styleTab(binding.tabProfileIcon, binding.tabProfileLabel, active = false)
+        styleTab(binding.tabSettingsIcon, binding.tabSettingsLabel, active = false)
 
         binding.tabHome.setOnClickListener {  }
         binding.tabDiary.setOnClickListener {  }
         binding.tabAnalysis.setOnClickListener {  }
-        binding.tabProfile.setOnClickListener {  }
+        binding.tabSettings.setOnClickListener {  }
+        binding.btnAvatar.setOnClickListener {
+            startActivity(Intent(this, ProfileActivity::class.java))
+            overridePendingTransition(R.anim.profile_enter, R.anim.home_stay)
+        }
         binding.btnScan.setOnClickListener {
             startActivity(Intent(this, ScannerActivity::class.java))
         }
-        binding.btnLogMeal.setOnClickListener {  }
+        binding.btnLogMeal.setOnClickListener {
+            startActivity(Intent(this, CreateMealActivity::class.java))
+        }
 
         binding.btnRetry.setOnClickListener { loadDashboard() }
     }
 
     private fun setGreeting(name: String?) {
-        binding.tvGreeting.text =
-            if (name.isNullOrBlank()) "Hello 👋" else "Hello, ${name.trim().substringBefore(' ')} 👋"
+        val first = name?.trim()?.substringBefore(' ').orEmpty()
+        binding.tvUserName.text = if (first.isEmpty()) "Hello there " else "Hello, $first "
+        binding.tvAvatarInitial.text = if (first.isEmpty()) "👤" else first.first().uppercaseChar().toString()
+        loadProfilePhoto()
+    }
+
+    private fun loadProfilePhoto() {
+        val photoFile = File(filesDir, "profile_picture_${session.getEmail().orEmpty().lowercase(Locale.US).hashCode()}.jpg")
+        if (photoFile.exists()) {
+            binding.ivAvatarPhoto.load(photoFile) {
+                crossfade(true)
+                transformations(coil.transform.CircleCropTransformation())
+            }
+            binding.ivAvatarPhoto.visibility = View.VISIBLE
+            binding.tvAvatarInitial.visibility = View.GONE
+        } else {
+            binding.ivAvatarPhoto.visibility = View.GONE
+            binding.tvAvatarInitial.visibility = View.VISIBLE
+        }
     }
 
     private fun styleTab(icon: android.widget.ImageView, label: android.widget.TextView, active: Boolean) {
@@ -127,6 +152,7 @@ class MainActivity : AppCompatActivity() {
                 when {
                     profileRes.isSuccessful && profile != null && logRes.isSuccessful && log != null -> {
                         session.saveProfileSummary(profile.name, profile.calories ?: 0)
+                        setGreeting(profile.name)
                         render(profile, log)
                     }
                     profileRes.code() == 401 || logRes.code() == 401 -> Unit
@@ -200,8 +226,9 @@ class MainActivity : AppCompatActivity() {
         for (entry in entries) {
             val item = ItemMealBinding.inflate(layoutInflater, binding.mealsContainer, false)
 
-            // Photo of the scanned food; the "sorry" illustration when there is none (or it fails to load).
-            if (entry.imageUrl.isNullOrBlank()) {
+            if (entry.barcode?.startsWith("meal-") == true) {
+                item.ivMealImage.setImageResource(R.drawable.ic_meal_bowl)
+            } else if (entry.imageUrl.isNullOrBlank()) {
                 item.ivMealImage.setImageResource(R.drawable.img_not_available)
             } else {
                 item.ivMealImage.load(entry.imageUrl) {
@@ -218,9 +245,92 @@ class MainActivity : AppCompatActivity() {
             item.tvMealTime.text = parseTime(entry.loggedAt)?.format(timeFormat).orEmpty()
             item.tvMealQty.text = "${entry.quantityG.roundToInt()} g"
 
+            val isCustomMeal = entry.barcode?.startsWith("meal-") == true
+            item.btnMealEdit.visibility = if (isCustomMeal) View.VISIBLE else View.GONE
+            item.btnMealDelete.visibility = if (isCustomMeal) View.VISIBLE else View.GONE
+            val revealWidth = dp(110).toFloat()
+            var downX = 0f
+            var downY = 0f
+            var startTranslation = 0f
+            if (isCustomMeal) item.mealForeground.setOnTouchListener { view, event ->
+                when (event.actionMasked) {
+                    MotionEvent.ACTION_DOWN -> {
+                        downX = event.rawX
+                        downY = event.rawY
+                        startTranslation = view.translationX
+                        true
+                    }
+                    MotionEvent.ACTION_MOVE -> {
+                        val dx = event.rawX - downX
+                        val dy = event.rawY - downY
+                        if (abs(dx) > abs(dy) && (abs(dx) > dp(5) || startTranslation != 0f)) {
+                            view.translationX = (startTranslation + dx).coerceIn(-revealWidth, 0f)
+                            true
+                        } else false
+                    }
+                    MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                        val dx = event.rawX - downX
+                        val target = when {
+                            abs(dx) > dp(24) && view.translationX < -revealWidth / 2f -> -revealWidth
+                            startTranslation != 0f -> 0f
+                            else -> view.translationX
+                        }
+                        view.animate().translationX(target).setDuration(180).start()
+                        true
+                    }
+                    else -> false
+                }
+            }
+            item.mealForeground.setOnClickListener {
+                if (item.mealForeground.translationX != 0f) {
+                    item.mealForeground.animate().translationX(0f).setDuration(160).start()
+                }
+            }
+            item.btnMealEdit.setOnClickListener {
+                val id = entry.id
+                if (id.isNullOrBlank()) {
+                    android.widget.Toast.makeText(this, "This meal can't be edited because its entry ID is missing.", android.widget.Toast.LENGTH_LONG).show()
+                } else {
+                    startActivity(CreateMealActivity.editIntent(this, entry))
+                }
+            }
+            item.btnMealDelete.setOnClickListener {
+                val id = entry.id
+                if (id.isNullOrBlank()) {
+                    android.widget.Toast.makeText(this, "This entry can't be deleted because its ID is missing.", android.widget.Toast.LENGTH_LONG).show()
+                } else {
+                    MaterialAlertDialogBuilder(this)
+                        .setTitle("Delete this meal?")
+                        .setMessage("${entry.name ?: "This meal"} will be removed from today's diary.")
+                        .setNegativeButton("Cancel", null)
+                        .setPositiveButton("Delete") { _, _ -> deleteMeal(id) }
+                        .show()
+                }
+            }
             binding.mealsContainer.addView(item.root)
         }
     }
+
+    private fun deleteMeal(id: String) {
+        lifecycleScope.launch {
+            try {
+                val response = ApiClient.api.deleteLog(id)
+                if (response.isSuccessful) {
+                    getSharedPreferences("saved_meal_ingredients", MODE_PRIVATE).edit().remove("ingredients_$id").apply()
+                    android.widget.Toast.makeText(this@MainActivity, "Meal deleted", android.widget.Toast.LENGTH_SHORT).show()
+                    loadDashboard()
+                } else if (response.code() != 401) {
+                    android.widget.Toast.makeText(this@MainActivity, "Couldn't delete meal (${response.code()}).", android.widget.Toast.LENGTH_LONG).show()
+                }
+            } catch (e: Exception) {
+                if (e !is CancellationException) android.widget.Toast.makeText(
+                    this@MainActivity, "Unable to delete meal: ${e.localizedMessage ?: "connection error"}", android.widget.Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
+
+    private fun dp(value: Int): Int = (value * resources.displayMetrics.density).roundToInt()
 
     private fun parseTime(iso: String?): ZonedDateTime? =
         iso?.let { runCatching { Instant.parse(it).atZone(ZoneId.systemDefault()) }.getOrNull() }

@@ -30,22 +30,60 @@
             android:paddingEnd="20dp"
             android:paddingBottom="48dp">
 
-            <TextView
-                android:id="@+id/tvGreeting"
-                android:layout_width="wrap_content"
+            <!-- Header: greeting on the left, profile picture on the right -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="@color/text_slate_500"
-                android:textSize="14sp" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-            <TextView
-                android:id="@+id/tvDate"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:letterSpacing="-0.02"
-                android:textColor="@color/text_slate_900"
-                android:textSize="26sp"
-                android:textStyle="bold"
-                tools:text="Friday, Nov 6" />
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    
+
+                    <TextView
+                        android:id="@+id/tvUserName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:letterSpacing="-0.02"
+                        android:maxLines="1"
+                        android:textColor="@color/text_slate_900"
+                        android:textSize="26sp"
+                        android:textStyle="bold"
+                        tools:text="Ahmed 👋" />
+                </LinearLayout>
+
+                <FrameLayout
+                    android:id="@+id/btnAvatar"
+                    android:layout_width="46dp"
+                    android:layout_height="46dp"
+                    android:layout_marginStart="12dp"
+                    android:background="@drawable/bg_avatar"
+                    android:contentDescription="Profile picture">
+
+                    <TextView
+                        android:id="@+id/tvAvatarInitial"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:textColor="@color/text_slate_900"
+                        android:textSize="19sp"
+                        android:textStyle="bold"
+                        tools:text="A" />
+
+                    <ImageView
+                        android:id="@+id/ivAvatarPhoto"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:visibility="gone"
+                        android:contentDescription="Profile picture" />
+                </FrameLayout>
+            </LinearLayout>
 
             <com.google.android.material.progressindicator.LinearProgressIndicator
                 android:id="@+id/progressLoading"
@@ -244,7 +282,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Today\'s Meals &amp; Scans"
+                        android:text="Today\'s Meals"
                         android:textColor="@color/text_slate_900"
                         android:textSize="16sp"
                         android:textStyle="bold" />
@@ -303,7 +341,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="No meals scanned yet"
+                    android:text="No meals logged yet"
                     android:textColor="@color/text_slate_900"
                     android:textSize="17sp"
                     android:textStyle="bold" />
@@ -451,7 +489,7 @@
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/tabProfile"
+                android:id="@+id/tabSettings"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
@@ -459,7 +497,7 @@
                 android:orientation="vertical">
 
                 <FrameLayout
-                    android:id="@+id/tabProfilePill"
+                    android:id="@+id/tabSettingsPill"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:paddingStart="16dp"
@@ -468,19 +506,19 @@
                     android:paddingBottom="3dp">
 
                     <ImageView
-                        android:id="@+id/tabProfileIcon"
+                        android:id="@+id/tabSettingsIcon"
                         android:layout_width="22dp"
                         android:layout_height="22dp"
                         android:importantForAccessibility="no"
-                        android:src="@drawable/ic_nav_profile" />
+                        android:src="@drawable/ic_nav_settings" />
                 </FrameLayout>
 
                 <TextView
-                    android:id="@+id/tabProfileLabel"
+                    android:id="@+id/tabSettingsLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:text="Profile"
+                    android:text="Settings"
                     android:textSize="10sp"
                     android:textStyle="bold" />
             </LinearLayout>

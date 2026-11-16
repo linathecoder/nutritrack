@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="ProfileCardTitle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginBottom">15dp</item>
+        <item name="android:textColor">@color/text_slate_900</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="ProfileFieldLabel">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">12dp</item>
+        <item name="android:layout_marginBottom">5dp</item>
+        <item name="android:textColor">@color/text_slate_700</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="ProfileInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginBottom">5dp</item>
+        <item name="boxStrokeColor">@color/profile_input_stroke</item>
+        <item name="hintTextColor">@color/text_slate_500</item>
+        <item name="android:textColorHint">@color/text_slate_500</item>
+        <item name="helperTextTextColor">@color/text_slate_500</item>
+        <item name="android:textColor">@color/text_slate_900</item>
+        <item name="boxCornerRadiusTopStart">14dp</item>
+        <item name="boxCornerRadiusTopEnd">14dp</item>
+        <item name="boxCornerRadiusBottomStart">14dp</item>
+        <item name="boxCornerRadiusBottomEnd">14dp</item>
+    </style>
+    <style name="ProfileInput">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/text_slate_900</item>
+        <item name="android:textColorHint">@color/text_slate_500</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">12dp</item>
+    </style>
+    <style name="ProfileSpinner">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">50dp</item>
+        <item name="android:background">@drawable/bg_profile_spinner</item>
+        <item name="android:paddingStart">12dp</item>
+        <item name="android:paddingEnd">12dp</item>
+        <item name="android:popupBackground">@color/white</item>
+    </style>
+    <style name="ProfileRadio" parent="Widget.MaterialComponents.CompoundButton.RadioButton">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:buttonTint">@color/nav_active</item>
+        <item name="android:textColor">@color/text_slate_700</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:padding">12dp</item>
+        <item name="android:layout_marginBottom">6dp</item>
+        <item name="android:background">@drawable/bg_profile_option</item>
+    </style>
+</resources>

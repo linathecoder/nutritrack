@@ -4,6 +4,8 @@ import com.nutritrack.backend.model.ActivityLevel;
 import com.nutritrack.backend.model.Goal;
 import com.nutritrack.backend.model.Sex;
 import com.nutritrack.backend.model.WorkoutFrequency;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Getter;
@@ -39,4 +41,8 @@ public class ProfileCalculationRequest {
 
     @NotNull(message = "Goal is required (WEIGHT_LOSS, MAINTENANCE, MUSCLE_GAIN)")
     private Goal goal;
+
+    @DecimalMin(value = "20.0", message = "Target weight must be at least 20 kg")
+    @DecimalMax(value = "400.0", message = "Target weight must be at most 400 kg")
+    private Double targetWeightKg;
 }

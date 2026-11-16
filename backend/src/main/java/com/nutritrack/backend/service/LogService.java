@@ -13,6 +13,8 @@ import com.nutritrack.backend.repository.LogEntryRepository;
 import com.nutritrack.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
@@ -59,7 +61,8 @@ public class LogService {
                         e.getQuantityG(),
                         e.getComputed() != null ? e.getComputed() : new Nutrients(),
                         e.getLoggedAt(),
-                        e.getFood().getImageUrl()))
+                        e.getFood().getImageUrl(),
+                        e.getFood().getIngredients()))
                 .toList();
 
         return new DailyLogResponse(today, totals, entries);
@@ -83,13 +86,12 @@ public class LogService {
             f.setIngredients(truncate(req.getIngredients(), 4000));
             f.setImageUrl(imageUrl);
             f.setPer100g(per100g);
-            f.setSource(Source.OPEN_FOOD_FACTS);
+            f.setSource(barcode.startsWith("meal-") ? Source.MANUAL : Source.OPEN_FOOD_FACTS);
             return foodProductRepository.save(f);
         });
         if (food.getPer100g() == null) {
             food.setPer100g(per100g);
         }
-        // Products saved before photos were supported get their photo the next time they are logged.
         if (food.getImageUrl() == null && imageUrl != null) {
             food.setImageUrl(imageUrl);
         }
@@ -116,9 +118,58 @@ public class LogService {
                 entry.getQuantityG(),
                 entry.getComputed(),
                 entry.getLoggedAt(),
-                food.getImageUrl());
+                food.getImageUrl(),
+                food.getIngredients());
     }
 
+    @Transactional
+    public DailyLogResponse.Entry updateEntry(UUID userId, UUID entryId, LogFoodRequest req) {
+        LogEntry entry = logEntryRepository.findByIdAndDailyLogUserId(entryId, userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Log entry not found"));
+
+        FoodProduct food = entry.getFood();
+        if (food.getSource() != Source.MANUAL || food.getBarcode() == null
+                || !food.getBarcode().startsWith("meal-")) {
+            throw new IllegalArgumentException("Only custom meals can be edited");
+        }
+        if (!food.getBarcode().equals(req.getBarcode().trim())) {
+            throw new IllegalArgumentException("Meal identifier cannot be changed");
+        }
+
+        Nutrients per100g = req.getPer100g();
+        if (!isValid(per100g.getCalories()) || !isValid(per100g.getProteinG())
+                || !isValid(per100g.getCarbsG()) || !isValid(per100g.getFatG())) {
+            throw new IllegalArgumentException("Nutrient values must be zero or positive numbers");
+        }
+        if (!Double.isFinite(req.getQuantityG()) || req.getQuantityG() < 0.1
+                || req.getQuantityG() > 10000) {
+            throw new IllegalArgumentException("Quantity must be between 0.1 and 10000 grams");
+        }
+
+        food.setName(truncate(blankToDefault(req.getName(), "Custom meal"), 255));
+        food.setIngredients(truncate(req.getIngredients(), 4000));
+        food.setPer100g(per100g);
+        String imageUrl = cleanImageUrl(req.getImageUrl());
+        if (imageUrl != null) food.setImageUrl(imageUrl);
+
+        entry.setQuantityG(req.getQuantityG());
+        entry.recompute();
+        return toResponse(entry);
+    }
+
+    @Transactional
+    public void deleteEntry(UUID userId, UUID entryId) {
+        LogEntry entry = logEntryRepository.findByIdAndDailyLogUserId(entryId, userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Log entry not found"));
+        logEntryRepository.delete(entry);
+    }
+
+    private static DailyLogResponse.Entry toResponse(LogEntry entry) {
+        FoodProduct food = entry.getFood();
+        return new DailyLogResponse.Entry(entry.getId(), food.getBarcode(), food.getName(),
+                entry.getQuantityG(), entry.getComputed(), entry.getLoggedAt(),
+                food.getImageUrl(), food.getIngredients());
+    }
 
     private static String cleanImageUrl(String url) {
         if (url == null) return null;

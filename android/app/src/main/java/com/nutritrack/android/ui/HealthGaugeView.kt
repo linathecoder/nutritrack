@@ -12,7 +12,6 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
-/** Semi-circular gauge. [score] is 0..100. (Display only: the score itself is hard-coded for now.) */
 class HealthGaugeView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
@@ -40,6 +39,14 @@ class HealthGaugeView @JvmOverloads constructor(
     }
     private val oval = RectF()
 
+    var accentColor: Int = green
+        set(value) {
+            field = value
+            fillPaint.color = value
+            nodeStroke.color = value
+            invalidate()
+        }
+
     var score: Int = 0
         set(value) {
             field = value.coerceIn(0, 100)
@@ -57,7 +64,6 @@ class HealthGaugeView @JvmOverloads constructor(
         val sweep = 180f * score / 100f
         if (score > 0) canvas.drawArc(oval, 180f, sweep, false, fillPaint)
 
-        // Marker at the end of the filled arc.
         val angle = (180.0 + sweep) * PI / 180.0
         val nx = cx + radius * cos(angle).toFloat()
         val ny = cy + radius * sin(angle).toFloat()

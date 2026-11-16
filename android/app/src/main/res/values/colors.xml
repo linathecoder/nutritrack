@@ -5,6 +5,10 @@
     <color name="primary_shadow">#6613EC49</color>
 
     <color name="background_light">#F6F8F6</color>
+    <color name="profile_page_bg">#F1FAEC</color>
+    <color name="profile_hero_bg">#E8F8E9</color>
+    <color name="profile_card_border">#E7F0E5</color>
+    <color name="profile_input_stroke">#B8D8BE</color>
     <color name="background_dark">#102215</color>
     <color name="card_background">#FFFFFF</color>
     <color name="text_slate_900">#0F172A</color>

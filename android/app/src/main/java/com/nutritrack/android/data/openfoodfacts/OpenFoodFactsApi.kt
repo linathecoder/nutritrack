@@ -14,7 +14,6 @@ interface OpenFoodFactsApi {
     ): Response<OffProductResponse>
 
     companion object {
-        // Asking only for what we display keeps the response small and fast.
         const val FIELDS = "code,product_name,brands,quantity,serving_size,serving_quantity," +
             "image_front_url,ingredients_text,allergens_tags,nutriscore_grade,nova_group,nutriments"
     }

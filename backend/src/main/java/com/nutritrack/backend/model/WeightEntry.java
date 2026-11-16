@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "date"}))
 @Getter @Setter
 public class WeightEntry {
     @Id @GeneratedValue(strategy = GenerationType.UUID)

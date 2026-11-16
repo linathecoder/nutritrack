@@ -45,8 +45,17 @@ class ScannerActivity : AppCompatActivity() {
     private var camera: Camera? = null
     private var torchOn = false
 
-    
     private val handled = AtomicBoolean(false)
+
+    private val forMeal by lazy { intent.getBooleanExtra(EXTRA_FOR_MEAL, false) }
+
+    private val productLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK && result.data != null) {
+                setResult(RESULT_OK, result.data)
+                finish()
+            }
+        }
 
     private val scanner by lazy {
         BarcodeScanning.getClient(
@@ -97,7 +106,6 @@ class ScannerActivity : AppCompatActivity() {
         scanner.close()
         cameraExecutor.shutdown()
     }
-
 
     private fun hasCameraPermission() =
         ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
@@ -175,7 +183,8 @@ class ScannerActivity : AppCompatActivity() {
     }
 
     private fun openProduct(barcode: String) {
-        startActivity(ProductActivity.intent(this, barcode))
+        if (forMeal) productLauncher.launch(ProductActivity.intent(this, barcode, forMeal = true))
+        else startActivity(ProductActivity.intent(this, barcode))
     }
 
     private fun toggleTorch() {
@@ -188,7 +197,6 @@ class ScannerActivity : AppCompatActivity() {
         val tint = ContextCompat.getColor(this, if (torchOn) R.color.text_slate_900 else R.color.white)
         ImageViewCompat.setImageTintList(binding.ivFlash, ColorStateList.valueOf(tint))
     }
-
 
     private fun showManualEntryDialog() {
         val content = layoutInflater.inflate(R.layout.dialog_manual_barcode, null)
@@ -203,7 +211,6 @@ class ScannerActivity : AppCompatActivity() {
             .setNegativeButton("Cancel", null)
             .create()
 
-       
         handled.set(true)
         dialog.setOnDismissListener { handled.set(false) }
         dialog.setOnShowListener {
@@ -219,5 +226,12 @@ class ScannerActivity : AppCompatActivity() {
             }
         }
         dialog.show()
+    }
+
+    companion object {
+        private const val EXTRA_FOR_MEAL = "for_meal"
+
+        fun intentForMeal(context: android.content.Context): Intent =
+            Intent(context, ScannerActivity::class.java).putExtra(EXTRA_FOR_MEAL, true)
     }
 }

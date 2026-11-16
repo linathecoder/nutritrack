@@ -282,7 +282,8 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="92"
+                                    android:id="@+id/tvHealthScore"
+                                    android:text="0"
                                     android:textColor="@color/text_slate_900"
                                     android:textSize="28sp"
                                     android:textStyle="bold" />
@@ -330,6 +331,7 @@
                                     android:paddingTop="3dp"
                                     android:paddingEnd="10dp"
                                     android:paddingBottom="3dp"
+                                    android:id="@+id/tvHealthRating"
                                     android:text="Excellent"
                                     android:textColor="@color/health_green"
                                     android:textSize="11sp"
@@ -340,7 +342,8 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
-                                android:text="Exceptionally lean protein density with zero added sugars and minimal processing."
+                                android:id="@+id/tvHealthExplanation"
+                                android:text=""
                                 android:textColor="@color/text_slate_700"
                                 android:textSize="12.5sp" />
                         </LinearLayout>
@@ -363,6 +366,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="6dp"
                                 android:background="@drawable/bg_rounded_square"
+                                android:id="@+id/tierBarPoor"
                                 android:backgroundTint="#33DC2626" />
 
                             <TextView
@@ -370,6 +374,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
                                 android:gravity="center"
+                                android:id="@+id/tierLabelPoor"
                                 android:text="Poor"
                                 android:textColor="@color/text_slate_400"
                                 android:textSize="10sp"
@@ -387,6 +392,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="6dp"
                                 android:background="@drawable/bg_rounded_square"
+                                android:id="@+id/tierBarModerate"
                                 android:backgroundTint="#40D97706" />
 
                             <TextView
@@ -394,6 +400,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
                                 android:gravity="center"
+                                android:id="@+id/tierLabelModerate"
                                 android:text="Moderate"
                                 android:textColor="@color/text_slate_400"
                                 android:textSize="10sp"
@@ -411,6 +418,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="6dp"
                                 android:background="@drawable/bg_rounded_square"
+                                android:id="@+id/tierBarGood"
                                 android:backgroundTint="#4D65A30D" />
 
                             <TextView
@@ -418,6 +426,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
                                 android:gravity="center"
+                                android:id="@+id/tierLabelGood"
                                 android:text="Good"
                                 android:textColor="@color/text_slate_400"
                                 android:textSize="10sp"
@@ -434,6 +443,7 @@
                             <View
                                 android:layout_width="match_parent"
                                 android:layout_height="6dp"
+                                android:id="@+id/tierBarExcellent"
                                 android:background="@drawable/bg_rounded_square"
                                 android:backgroundTint="@color/health_green" />
 
@@ -442,6 +452,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
                                 android:gravity="center"
+                                android:id="@+id/tierLabelExcellent"
                                 android:text="Excellent"
                                 android:textColor="@color/health_green"
                                 android:textSize="10sp"
@@ -450,7 +461,7 @@
                     </LinearLayout>
                 </LinearLayout>
 
-                <!-- 3. AI insights (hard-coded UI for now) -->
+                <!-- 3. AI insights (rule based, computed from the product's nutrition) -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -520,7 +531,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="10dp"
-                        android:text="Ultra-clean, single-ingredient dairy base delivering high protein per calorie with near-zero fat and no added sweeteners."
+                        android:id="@+id/tvInsightsSummary"
+                        android:text=""
                         android:textColor="@color/text_slate_700"
                         android:textSize="13sp" />
 
@@ -536,6 +548,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:letterSpacing="0.06"
+                            android:id="@+id/tvGoodHeading"
                             android:text="GOOD THINGS"
                             android:textColor="@color/health_green"
                             android:textSize="11sp"
@@ -552,6 +565,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="16dp"
                             android:letterSpacing="0.06"
+                            android:id="@+id/tvWatchHeading"
                             android:text="THINGS TO WATCH"
                             android:textColor="@color/amber_text"
                             android:textSize="11sp"

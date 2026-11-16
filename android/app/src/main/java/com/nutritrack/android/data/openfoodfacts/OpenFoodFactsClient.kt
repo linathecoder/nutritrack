@@ -6,18 +6,10 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
-/**
- * Retrofit client for Open Food Facts.
- *
- * Deliberately separate from [com.nutritrack.android.data.api.ApiClient]: that one attaches your
- * NutriTrack JWT to every request, and it must never be sent to a third-party server.
- */
 object OpenFoodFactsClient {
 
     private const val BASE_URL = "https://world.openfoodfacts.org/"
 
-    // Open Food Facts asks every app to identify itself with a custom User-Agent.
-    // TODO: replace the contact address with your own.
     private const val USER_AGENT = "NutriTrack/1.0 (Android; contact: you@example.com)"
 
     private val okHttpClient by lazy {

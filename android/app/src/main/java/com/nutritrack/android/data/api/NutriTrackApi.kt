@@ -3,8 +3,12 @@ package com.nutritrack.android.data.api
 import com.nutritrack.android.data.model.*
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
+import retrofit2.http.PUT
+import retrofit2.http.Path
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Query
 
 interface NutriTrackApi {
 
@@ -25,4 +29,16 @@ interface NutriTrackApi {
 
     @POST("api/logs")
     suspend fun logFood(@Body request: LogFoodRequest): Response<LogEntryDto>
+
+    @PUT("api/logs/{id}")
+    suspend fun updateLog(@Path("id") id: String, @Body request: LogFoodRequest): Response<LogEntryDto>
+
+    @DELETE("api/logs/{id}")
+    suspend fun deleteLog(@Path("id") id: String): Response<Unit>
+
+    @POST("api/weight")
+    suspend fun logWeight(@Body request: WeightRequest): Response<WeightEntryDto>
+
+    @GET("api/weight")
+    suspend fun getWeightHistory(@Query("days") days: Int): Response<WeightHistoryResponse>
 }

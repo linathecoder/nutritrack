@@ -23,6 +23,13 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import coil.load
 import com.nutritrack.android.data.api.ApiClient
+import com.nutritrack.android.data.food.HealthScoring
+import com.nutritrack.android.data.food.HealthTier
+import com.nutritrack.android.data.food.MealMath
+import com.nutritrack.android.data.food.ScannedMealItem
+import com.nutritrack.android.data.food.toFacts
+import com.nutritrack.android.ui.HealthCardRenderer
+import com.nutritrack.android.ui.InsightRenderer
 import com.nutritrack.android.data.model.LogFoodRequest
 import com.nutritrack.android.data.model.NutrientsDto
 import com.nutritrack.android.data.openfoodfacts.ProductRepository
@@ -39,14 +46,13 @@ import org.json.JSONObject
 import java.util.Locale
 import kotlin.math.roundToInt
 
-
 class ProductActivity : AppCompatActivity() {
 
     private data class UnitOption(val label: String, val grams: Double, val isGrams: Boolean = false)
-    private data class Insight(val title: String, val text: String)
 
     private lateinit var binding: ActivityProductBinding
     private lateinit var barcode: String
+    private var forMeal = false
     private var loadJob: Job? = null
 
     private var product: ScannedProduct? = null
@@ -55,6 +61,20 @@ class ProductActivity : AppCompatActivity() {
     private var units: List<UnitOption> = listOf(UnitOption("g", 1.0))
     private var updatingQty = false
 
+    private val healthCard by lazy {
+        HealthCardRenderer(
+            this, binding.healthGauge, binding.tvHealthScore, binding.tvHealthRating, binding.tvHealthExplanation,
+            mapOf(
+                HealthTier.POOR to binding.tierBarPoor, HealthTier.MODERATE to binding.tierBarModerate,
+                HealthTier.GOOD to binding.tierBarGood, HealthTier.EXCELLENT to binding.tierBarExcellent
+            ),
+            mapOf(
+                HealthTier.POOR to binding.tierLabelPoor, HealthTier.MODERATE to binding.tierLabelModerate,
+                HealthTier.GOOD to binding.tierLabelGood, HealthTier.EXCELLENT to binding.tierLabelExcellent
+            )
+        )
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -62,6 +82,7 @@ class ProductActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         barcode = intent.getStringExtra(EXTRA_BARCODE).orEmpty()
+        forMeal = intent.getBooleanExtra(EXTRA_FOR_MEAL, false)
         if (barcode.isBlank()) {
             finish()
             return
@@ -88,8 +109,6 @@ class ProductActivity : AppCompatActivity() {
         setupDockControls()
         load()
     }
-
-   
 
     private fun load() {
         loadJob?.cancel()
@@ -144,23 +163,7 @@ class ProductActivity : AppCompatActivity() {
         setupUnits(p)
     }
 
-   
-
     private fun setupStaticSections() {
-        binding.healthGauge.score = 92
-
-        val good = listOf(
-            Insight("High Protein Density", "11.0g protein per 100g (71% of calories), ideal for lean muscle retention and satiety."),
-            Insight("Zero Fat & Minimal Sugar", "0.2g total fat and only 4.0g naturally occurring lactose with zero added sugars."),
-            Insight("Clean, Minimal Processing", "Made strictly from pasteurized skim milk and live yogurt cultures (NOVA Group 1).")
-        )
-        val watch = listOf(
-            Insight("Zero Dietary Fiber", "0.0g fiber per serving; pair with berries, oats, or chia seeds for digestive balance."),
-            Insight("Contains Dairy Allergen", "Derived from cow's milk (lactose & casein); unsuitable for dairy-free diets.")
-        )
-        good.forEach { addInsight(binding.goodContainer, it, isGood = true) }
-        watch.forEach { addInsight(binding.watchContainer, it, isGood = false) }
-
         binding.btnInsightsToggle.setOnClickListener {
             insightsExpanded = !insightsExpanded
             TransitionManager.beginDelayedTransition(binding.scrollContent.getChildAt(0) as ViewGroup)
@@ -180,16 +183,6 @@ class ProductActivity : AppCompatActivity() {
         }
     }
 
-    private fun addInsight(container: LinearLayout, insight: Insight, isGood: Boolean) {
-        val item = ItemInsightBinding.inflate(layoutInflater, container, false)
-        item.insightRoot.setBackgroundResource(if (isGood) R.drawable.bg_insight_good else R.drawable.bg_insight_watch)
-        item.tvInsightIcon.text = if (isGood) "✓" else "!"
-        item.tvInsightIcon.setTextColor(if (isGood) color(R.color.health_green) else color(R.color.amber_text))
-        item.tvInsightTitle.text = insight.title
-        item.tvInsightText.text = insight.text
-        container.addView(item.root)
-    }
-
     private fun setupMacroRow(row: ItemMacroRowBinding, name: String, strongColor: Int, softColor: Int) {
         row.tvMacroName.text = name
         row.dotMacro.backgroundTintList = ColorStateList.valueOf(color(strongColor))
@@ -197,7 +190,6 @@ class ProductActivity : AppCompatActivity() {
         row.progressMacro.setIndicatorColor(color(strongColor))
         row.macroRowRoot.backgroundTintList = ColorStateList.valueOf(color(softColor))
     }
-
 
     private fun renderHero(p: ScannedProduct) {
         binding.tvName.text = p.name ?: "Unknown product"
@@ -225,12 +217,10 @@ class ProductActivity : AppCompatActivity() {
         binding.naPhoto.root.visibility = View.VISIBLE
     }
 
-    
     private fun amountValues(p: ScannedProduct) = p.per100g.scaled(totalGrams() / 100)
 
     private fun amountLabel() = "${qtyText(totalGrams())}g"
 
-    
     private fun renderFacts() {
         val p = product ?: return
         binding.tvBasisSubtitle.text = "Values for ${amountLabel()}"
@@ -342,7 +332,6 @@ class ProductActivity : AppCompatActivity() {
         binding.qualityRow.visibility = View.VISIBLE
         binding.naQuality.root.visibility = View.GONE
 
-        
         binding.nutriScoreRow.removeAllViews()
         if (p.nutriScore == null) {
             binding.nutriScoreRow.visibility = View.GONE
@@ -369,7 +358,6 @@ class ProductActivity : AppCompatActivity() {
             }
         }
 
-
         if (p.novaGroup == null) {
             binding.novaRow.visibility = View.GONE
             binding.tvNovaNa.visibility = View.VISIBLE
@@ -387,7 +375,6 @@ class ProductActivity : AppCompatActivity() {
             binding.tvNovaLabel.text = label
         }
     }
-
 
     private fun setupDockControls() {
         binding.btnMinus.setOnClickListener { adjustQuantity(-1) }
@@ -460,10 +447,35 @@ class ProductActivity : AppCompatActivity() {
         updateDock()
     }
 
-    /** The amount changed: bring the Nutrition Facts and Detailed Nutrients in line with it. */
     private fun updateDock() {
         renderFacts()
         renderDetails()
+        renderAnalysis()
+    }
+
+    private fun renderAnalysis() {
+        val p = product ?: return
+        val hasAmount = totalGrams() > 0.0
+        val facts = (if (hasAmount) amountValues(p) else p.per100g).toFacts()
+        healthCard.render(HealthScoring.score(facts))
+
+        val ins = MealMath.productInsights(facts, p.novaGroup, p.nutriScore, if (hasAmount) amountLabel() else "100g")
+        binding.tvInsightsSummary.text = ins.summary
+        binding.goodContainer.removeAllViews()
+        binding.watchContainer.removeAllViews()
+        ins.good.forEach { InsightRenderer.add(layoutInflater, binding.goodContainer, it, isGood = true) }
+        ins.watch.forEach { InsightRenderer.add(layoutInflater, binding.watchContainer, it, isGood = false) }
+
+        binding.tvGoodHeading.visibility = if (ins.good.isEmpty()) View.GONE else View.VISIBLE
+        binding.tvWatchHeading.visibility = if (ins.watch.isEmpty()) View.GONE else View.VISIBLE
+        val hasBreakdown = ins.good.isNotEmpty() || ins.watch.isNotEmpty()
+        binding.btnInsightsToggle.visibility = if (hasBreakdown) View.VISIBLE else View.GONE
+        if (!hasBreakdown) {
+            insightsExpanded = false
+            binding.tvInsightsToggle.text = "View breakdown"
+            binding.ivInsightsChevron.rotation = 0f
+        }
+        binding.insightsDrawer.visibility = if (hasBreakdown && insightsExpanded) View.VISIBLE else View.GONE
     }
 
     private fun logProduct() {
@@ -478,6 +490,16 @@ class ProductActivity : AppCompatActivity() {
             return
         }
         hideKeyboard()
+
+        if (forMeal) {
+            if (!p.per100g.hasMain) {
+                showDockError("This product has no nutrition information, so it cannot be added to a meal.")
+                return
+            }
+            setResult(RESULT_OK, ScannedMealItem.from(p, grams).toIntent())
+            finish()
+            return
+        }
 
         val per100 = p.per100g
         val request = LogFoodRequest(
@@ -524,7 +546,11 @@ class ProductActivity : AppCompatActivity() {
 
     private fun setSaving(saving: Boolean) {
         binding.btnLog.isEnabled = !saving
-        binding.btnLog.text = if (saving) "Logging…" else "Log Product"
+        binding.btnLog.text = when {
+            saving -> "Logging…"
+            forMeal -> "Add to Meal"
+            else -> "Log Product"
+        }
     }
 
     private fun showDockError(message: String) {
@@ -540,7 +566,6 @@ class ProductActivity : AppCompatActivity() {
             null
         }
     }
-
 
     private fun hideKeyboard() {
         currentFocus?.let {
@@ -559,12 +584,15 @@ class ProductActivity : AppCompatActivity() {
 
     companion object {
         private const val EXTRA_BARCODE = "barcode"
+        private const val EXTRA_FOR_MEAL = "for_meal"
         private const val COLLAPSED_INGREDIENTS = 6
         private const val MAX_LOG_GRAMS = 10_000.0
         private const val TABLESPOON_GRAMS = 15.0
         private const val TEASPOON_GRAMS = 5.0
 
-        fun intent(context: Context, barcode: String): Intent =
-            Intent(context, ProductActivity::class.java).putExtra(EXTRA_BARCODE, barcode)
+        fun intent(context: Context, barcode: String, forMeal: Boolean = false): Intent =
+            Intent(context, ProductActivity::class.java)
+                .putExtra(EXTRA_BARCODE, barcode)
+                .putExtra(EXTRA_FOR_MEAL, forMeal)
     }
 }

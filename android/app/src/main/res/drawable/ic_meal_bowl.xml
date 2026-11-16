@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Bowl illustration used for meals (same artwork as the Create a Meal mock-up). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <path
+        android:fillColor="#2414532D"
+        android:pathData="M10,40a14,2.5 0 1,0 28,0a14,2.5 0 1,0 -28,0z" />
+    <path
+        android:fillColor="#D1D97706"
+        android:pathData="M12.5,23a5.5,5.5 0 1,0 11,0a5.5,5.5 0 1,0 -11,0z" />
+    <path
+        android:fillColor="#D9166534"
+        android:pathData="M24,22a5,5 0 1,0 10,0a5,5 0 1,0 -10,0z" />
+    <path
+        android:fillColor="#059669"
+        android:pathData="M18.5,20a5.5,5.5 0 1,0 11,0a5.5,5.5 0 1,0 -11,0z" />
+    <path
+        android:fillColor="#D9DC2626"
+        android:pathData="M18.5,24a2.5,2.5 0 1,0 5,0a2.5,2.5 0 1,0 -5,0z" />
+    <path
+        android:fillColor="#14532D"
+        android:pathData="M9,24H39C39,32.284 32.284,38 24,38C15.716,38 9,32.284 9,24Z" />
+    <path
+        android:pathData="M9,24H39"
+        android:strokeColor="#34D399"
+        android:strokeLineCap="round"
+        android:strokeWidth="1.6" />
+</vector>

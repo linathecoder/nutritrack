@@ -1,0 +1,517 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/profileRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/profile_page_bg"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="58dp"
+        android:gravity="center_vertical"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp">
+
+        <ImageView
+            android:id="@+id/btnProfileBack"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/bg_circle_button"
+            android:contentDescription="Go back"
+            android:padding="10dp"
+            android:src="@drawable/ic_arrow_back"
+            app:tint="@color/text_slate_900" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="14dp"
+            android:layout_weight="1"
+            android:text="Profile"
+            android:textColor="@color/text_slate_900"
+            android:textSize="21sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:background="@drawable/bg_circle_button"
+            android:padding="8dp"
+            android:src="@drawable/ic_person"
+            android:contentDescription="Profile"
+            app:tint="@color/nav_active" />
+    </LinearLayout>
+
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/profileProgress"
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:indeterminate="true"
+        android:visibility="gone"
+        app:indicatorColor="@color/nav_active"
+        app:trackColor="@color/background_light" />
+
+    <ScrollView
+        android:id="@+id/profileContent"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:fillViewport="true"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="16dp"
+            android:paddingTop="10dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="36dp">
+
+            <!-- Profile header -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardBackgroundColor="@color/profile_hero_bg"
+                app:cardCornerRadius="22dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/profile_card_border"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="18dp">
+
+                    <FrameLayout
+                        android:id="@+id/profileAvatarFrame"
+                        android:layout_width="84dp"
+                        android:layout_height="84dp"
+                        android:background="@drawable/bg_profile_avatar"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:contentDescription="Choose profile picture"
+                        android:padding="3dp">
+
+                        <ImageView
+                            android:id="@+id/ivProfilePlaceholder"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@drawable/bg_profile_avatar_inner"
+                            android:padding="20dp"
+                            android:src="@drawable/ic_person"
+                            android:contentDescription="Default profile picture"
+                            app:tint="@color/white" />
+
+                        <ImageView
+                            android:id="@+id/ivProfilePhoto"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerCrop"
+                            android:visibility="gone"
+                            android:contentDescription="Selected profile picture" />
+
+                        <ImageView
+                            android:layout_width="23dp"
+                            android:layout_height="23dp"
+                            android:layout_gravity="bottom|end"
+                            android:background="@drawable/bg_avatar"
+                            android:padding="5dp"
+                            android:src="@drawable/ic_edit"
+                            android:contentDescription="Change photo"
+                            app:tint="@color/white" />
+                    </FrameLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="14dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvProfileName"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:text="Your name"
+                            android:textColor="@color/text_slate_900"
+                            android:textSize="19sp"
+                            android:letterSpacing="-0.02"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvProfileEmail"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="3dp"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:text="account@email.com"
+                            android:textColor="@color/text_slate_500"
+                            android:textSize="13sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="9dp"
+                            android:background="@drawable/bg_profile_chip"
+                            android:paddingStart="10dp"
+                            android:paddingTop="5dp"
+                            android:paddingEnd="10dp"
+                            android:paddingBottom="5dp"
+                            android:text="NUTRITRACK MEMBER"
+                            android:textColor="@color/nav_active"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Personal information -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="22dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/profile_card_border"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView style="@style/ProfileCardTitle" android:text="Personal Information" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/ProfileInputLayout"
+                        android:hint="Full name">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etProfileName"
+                            style="@style/ProfileInput"
+                            android:inputType="textPersonName" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <TextView style="@style/ProfileFieldLabel" android:text="Age" />
+                    <com.google.android.material.textfield.TextInputLayout style="@style/ProfileInputLayout">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etProfileAge"
+                            style="@style/ProfileInput"
+                            android:inputType="number" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <TextView style="@style/ProfileFieldLabel" android:text="Gender" />
+                    <RadioGroup
+                        android:id="@+id/rgSex"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+                        <RadioButton
+                            android:id="@+id/rbMale"
+                            style="@style/ProfileRadio"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:text="Male" />
+                        <RadioButton
+                            android:id="@+id/rbFemale"
+                            style="@style/ProfileRadio"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:text="Female" />
+                    </RadioGroup>
+
+                    <TextView style="@style/ProfileFieldLabel" android:text="Weight unit" />
+                    <Spinner
+                        android:id="@+id/spinnerWeightUnit"
+                        style="@style/ProfileSpinner" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:paddingEnd="6dp">
+                            <TextView style="@style/ProfileFieldLabel" android:text="Height (cm)" />
+                            <com.google.android.material.textfield.TextInputLayout style="@style/ProfileInputLayout">
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/etProfileHeight"
+                                    style="@style/ProfileInput"
+                                    android:inputType="numberDecimal" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:paddingStart="6dp">
+                            <TextView style="@style/ProfileFieldLabel" android:id="@+id/tvCurrentWeightLabel" android:text="Current weight (kg)" />
+                            <com.google.android.material.textfield.TextInputLayout style="@style/ProfileInputLayout">
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/etProfileWeight"
+                                    style="@style/ProfileInput"
+                                    android:inputType="numberDecimal" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <TextView style="@style/ProfileFieldLabel" android:id="@+id/tvTargetWeightLabel" android:text="Target weight (kg)" />
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/ProfileInputLayout"
+                        app:helperText="Optional">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etProfileTargetWeight"
+                            style="@style/ProfileInput"
+                            android:inputType="numberDecimal" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Goals -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="22dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/profile_card_border"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView style="@style/ProfileCardTitle" android:text="Your Goals" />
+                    <RadioGroup
+                        android:id="@+id/rgGoal"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+                        <RadioButton
+                            android:id="@+id/rbLoseWeight"
+                            style="@style/ProfileRadio"
+                            android:layout_width="match_parent"
+                            android:text="Lose weight" />
+                        <RadioButton
+                            android:id="@+id/rbMaintain"
+                            style="@style/ProfileRadio"
+                            android:layout_width="match_parent"
+                            android:text="Maintain weight" />
+                        <RadioButton
+                            android:id="@+id/rbBuildMuscle"
+                            style="@style/ProfileRadio"
+                            android:layout_width="match_parent"
+                            android:text="Build muscle" />
+                    </RadioGroup>
+                    <TextView style="@style/ProfileFieldLabel" android:text="Workouts per week" />
+                    <Spinner
+                        android:id="@+id/spinnerWorkouts"
+                        style="@style/ProfileSpinner" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Daily nutrition goals -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="22dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/profile_card_border"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView style="@style/ProfileCardTitle" android:text="Daily Nutrition Goals" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_profile_nutrition"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="16dp">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="DAILY CALORIE TARGET"
+                                android:textColor="@color/hero_label"
+                                android:textSize="10sp"
+                                android:textStyle="bold" />
+                            <TextView
+                                android:id="@+id/tvTargetCalories"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="5dp"
+                                android:text="— kcal"
+                                android:textColor="@color/white"
+                                android:textSize="26sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="end"
+                            android:orientation="vertical">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="MAINTENANCE"
+                                android:textColor="@color/hero_sub"
+                                android:textSize="10sp"
+                                android:textStyle="bold" />
+                            <TextView
+                                android:id="@+id/tvMaintenanceCalories"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="5dp"
+                                android:text="— kcal"
+                                android:textColor="@color/white"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:orientation="horizontal">
+                        <include
+                            android:id="@+id/proteinMacro"
+                            layout="@layout/item_profile_macro"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1" />
+                        <include
+                            android:id="@+id/carbsMacro"
+                            layout="@layout/item_profile_macro"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1" />
+                        <include
+                            android:id="@+id/fatMacro"
+                            layout="@layout/item_profile_macro"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Activity level -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="22dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/profile_card_border"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView style="@style/ProfileCardTitle" android:text="Activity Level" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:text="Choose the option that best describes your usual activity."
+                        android:textColor="@color/text_slate_500"
+                        android:textSize="12sp" />
+                    <RadioGroup
+                        android:id="@+id/rgActivity"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+                        <RadioButton
+                            android:id="@+id/rbSedentary"
+                            style="@style/ProfileRadio"
+                            android:layout_width="match_parent"
+                            android:text="Sedentary · Little or no exercise" />
+                        <RadioButton
+                            android:id="@+id/rbModerate"
+                            style="@style/ProfileRadio"
+                            android:layout_width="match_parent"
+                            android:text="Moderate · 3–5 workouts per week" />
+                        <RadioButton
+                            android:id="@+id/rbActive"
+                            style="@style/ProfileRadio"
+                            android:layout_width="match_parent"
+                            android:text="Active · 6–7 workouts per week" />
+                    </RadioGroup>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSaveProfile"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="22dp"
+                android:text="Save changes"
+                android:textAllCaps="false"
+                android:textColor="@color/text_slate_900"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                app:backgroundTint="@color/primary"
+                app:cornerRadius="16dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnLogout"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:layout_marginTop="18dp"
+                android:text="Log out"
+                android:textAllCaps="false"
+                android:textColor="@color/error_text"
+                app:cornerRadius="16dp"
+                app:strokeColor="@color/error_text"
+                app:strokeWidth="1dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="center"
+                android:text="NutriTrack"
+                android:textColor="@color/text_slate_400"
+                android:textSize="11sp" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

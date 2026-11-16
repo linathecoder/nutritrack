@@ -29,4 +29,18 @@ public class LogController {
                                                            @Valid @RequestBody LogFoodRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(logService.addEntry(userId, request));
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<DailyLogResponse.Entry> updateEntry(@AuthenticationPrincipal UUID userId,
+                                                              @PathVariable UUID id,
+                                                              @Valid @RequestBody LogFoodRequest request) {
+        return ResponseEntity.ok(logService.updateEntry(userId, id, request));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteEntry(@AuthenticationPrincipal UUID userId,
+                                            @PathVariable UUID id) {
+        logService.deleteEntry(userId, id);
+        return ResponseEntity.noContent().build();
+    }
 }

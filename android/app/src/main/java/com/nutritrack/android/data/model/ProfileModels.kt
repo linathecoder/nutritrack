@@ -8,7 +8,8 @@ data class ProfileCalculationRequest(
     val age: Int,
     val activityLevel: String,
     val workoutFrequency: String,
-    val goal: String
+    val goal: String,
+    val targetWeightKg: Double? = null
 )
 
 data class ProfileCalculationResponse(
@@ -28,5 +29,21 @@ data class ProfileCalculationResponse(
     val calories: Int?,
     val proteinG: Double?,
     val carbsG: Double?,
-    val fatG: Double?
+    val fatG: Double?,
+    val targetWeightKg: Double? = null
+)
+
+data class WeightRequest(
+    val weightKg: Double,
+    val date: String? = null
+)
+
+data class WeightEntryDto(
+    val date: String,
+    val weightKg: Double
+)
+
+data class WeightHistoryResponse(
+    val targetWeightKg: Double? = null,
+    val entries: List<WeightEntryDto> = emptyList()
 )

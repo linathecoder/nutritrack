@@ -34,4 +34,6 @@ public class ProfileCalculationResponse {
     private double proteinG;
     private double carbsG;
     private double fatG;
+
+    private Double targetWeightKg;
 }

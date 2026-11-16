@@ -3,17 +3,23 @@ package com.nutritrack.backend.service;
 import com.nutritrack.backend.dto.ProfileCalculationRequest;
 import com.nutritrack.backend.dto.ProfileCalculationResponse;
 import com.nutritrack.backend.model.MacroTarget;
+import com.nutritrack.backend.model.MacroTargetHistory;
 import com.nutritrack.backend.model.User;
 import com.nutritrack.backend.model.UserProfile;
+import com.nutritrack.backend.model.WeightEntry;
+import com.nutritrack.backend.repository.MacroTargetHistoryRepository;
 import com.nutritrack.backend.repository.MacroTargetRepository;
 import com.nutritrack.backend.repository.UserProfileRepository;
 import com.nutritrack.backend.repository.UserRepository;
+import com.nutritrack.backend.repository.WeightEntryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.UUID;
 
 @Service
@@ -24,6 +30,10 @@ public class ProfileService {
     private final UserProfileRepository userProfileRepository;
     private final MacroTargetRepository macroTargetRepository;
     private final CalorieCalculatorService calorieCalculatorService;
+    private final WeightEntryRepository weightEntryRepository;
+    private final MacroTargetHistoryRepository macroTargetHistoryRepository;
+
+    private static final ZoneId ZONE = ZoneId.of("Africa/Tunis");
 
     public ProfileCalculationResponse previewCalculation(ProfileCalculationRequest request) {
         int age = (request.getAge() != null && request.getAge() > 0) ? request.getAge() : 25;
@@ -92,6 +102,9 @@ public class ProfileService {
         profile.setActivityLevel(request.getActivityLevel());
         profile.setWorkoutFrequency(request.getWorkoutFrequency());
         profile.setGoal(request.getGoal());
+        if (request.getTargetWeightKg() != null) {
+            profile.setTargetWeightKg(request.getTargetWeightKg());
+        }
         UserProfile savedProfile = userProfileRepository.save(profile);
 
         if (request.getName() != null && !request.getName().isBlank()) {
@@ -112,6 +125,10 @@ public class ProfileService {
         macroTarget.setFatG(calc.fatG());
         MacroTarget savedMacroTarget = macroTargetRepository.save(macroTarget);
 
+        LocalDate today = LocalDate.now(ZONE);
+        recordWeight(user, today, savedProfile.getWeightKg());
+        recordTargets(user, today, savedMacroTarget);
+
         return ProfileCalculationResponse.builder()
                 .userId(user.getId())
                 .profileId(savedProfile.getId())
@@ -130,10 +147,11 @@ public class ProfileService {
                 .proteinG(savedMacroTarget.getProteinG())
                 .carbsG(savedMacroTarget.getCarbsG())
                 .fatG(savedMacroTarget.getFatG())
+                .targetWeightKg(savedProfile.getTargetWeightKg())
                 .build();
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public ProfileCalculationResponse getProfileByUserId(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id: " + userId));
@@ -143,6 +161,14 @@ public class ProfileService {
 
         MacroTarget macroTarget = macroTargetRepository.findByUserId(userId)
                 .orElse(null);
+
+        LocalDate today = LocalDate.now(ZONE);
+        if (!weightEntryRepository.existsByUserId(userId)) {
+            recordWeight(user, today, profile.getWeightKg());
+        }
+        if (macroTarget != null && !macroTargetHistoryRepository.existsByUserId(userId)) {
+            recordTargets(user, today, macroTarget);
+        }
 
         CalorieCalculatorService.CalculationResult calc = calorieCalculatorService.calculate(
                 profile.getSex(),
@@ -172,6 +198,32 @@ public class ProfileService {
                 .proteinG(macroTarget != null ? macroTarget.getProteinG() : calc.proteinG())
                 .carbsG(macroTarget != null ? macroTarget.getCarbsG() : calc.carbsG())
                 .fatG(macroTarget != null ? macroTarget.getFatG() : calc.fatG())
+                .targetWeightKg(profile.getTargetWeightKg())
                 .build();
+    }
+
+    private void recordWeight(User user, LocalDate date, double weightKg) {
+        WeightEntry entry = weightEntryRepository.findByUserIdAndDate(user.getId(), date).orElseGet(() -> {
+            WeightEntry e = new WeightEntry();
+            e.setUser(user);
+            e.setDate(date);
+            return e;
+        });
+        entry.setWeightKg(weightKg);
+        weightEntryRepository.save(entry);
+    }
+
+    private void recordTargets(User user, LocalDate date, MacroTarget target) {
+        MacroTargetHistory row = macroTargetHistoryRepository.findByUserIdAndDate(user.getId(), date).orElseGet(() -> {
+            MacroTargetHistory h = new MacroTargetHistory();
+            h.setUser(user);
+            h.setDate(date);
+            return h;
+        });
+        row.setCalories(target.getCalories());
+        row.setProteinG(target.getProteinG());
+        row.setCarbsG(target.getCarbsG());
+        row.setFatG(target.getFatG());
+        macroTargetHistoryRepository.save(row);
     }
 }
