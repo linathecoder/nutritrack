@@ -35,11 +35,25 @@ public class LogService {
     private final LogEntryRepository logEntryRepository;
     private final UserRepository userRepository;
 
+    // ── Task 2: delegate getToday to getByDate ────────────────────────────────
+
     @Transactional(readOnly = true)
     public DailyLogResponse getToday(UUID userId) {
-        LocalDate today = LocalDate.now(ZONE);
+        return getByDate(userId, LocalDate.now(ZONE));
+    }
 
-        List<LogEntry> logEntries = dailyLogRepository.findByUserIdAndDate(userId, today)
+    /**
+     * Return the daily log for a specific date (or today if {@code date} is null).
+     * Default timezone: Africa/Tunis.
+     * Response shape is identical to GET /api/logs/today (BR-02).
+     */
+    @Transactional(readOnly = true)
+    public DailyLogResponse getByDate(UUID userId, LocalDate date) {
+        if (date == null) {
+            date = LocalDate.now(ZONE);
+        }
+
+        List<LogEntry> logEntries = dailyLogRepository.findByUserIdAndDate(userId, date)
                 .map(log -> log.getEntries().stream()
                         .sorted(Comparator.comparing(LogEntry::getLoggedAt,
                                 Comparator.nullsFirst(Comparator.<Instant>naturalOrder())))
@@ -65,7 +79,7 @@ public class LogService {
                         e.getFood().getIngredients()))
                 .toList();
 
-        return new DailyLogResponse(today, totals, entries);
+        return new DailyLogResponse(date, totals, entries);
     }
 
     @Transactional
@@ -122,38 +136,47 @@ public class LogService {
                 food.getIngredients());
     }
 
+    // ── Task 3: allow quantity updates for ALL food types (BR-07, BR-02) ──────
+
     @Transactional
     public DailyLogResponse.Entry updateEntry(UUID userId, UUID entryId, LogFoodRequest req) {
         LogEntry entry = logEntryRepository.findByIdAndDailyLogUserId(entryId, userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Log entry not found"));
 
-        FoodProduct food = entry.getFood();
-        if (food.getSource() != Source.MANUAL || food.getBarcode() == null
-                || !food.getBarcode().startsWith("meal-")) {
-            throw new IllegalArgumentException("Only custom meals can be edited");
-        }
-        if (!food.getBarcode().equals(req.getBarcode().trim())) {
-            throw new IllegalArgumentException("Meal identifier cannot be changed");
-        }
-
-        Nutrients per100g = req.getPer100g();
-        if (!isValid(per100g.getCalories()) || !isValid(per100g.getProteinG())
-                || !isValid(per100g.getCarbsG()) || !isValid(per100g.getFatG())) {
-            throw new IllegalArgumentException("Nutrient values must be zero or positive numbers");
-        }
+        // BR-07: quantity must be > 0
         if (!Double.isFinite(req.getQuantityG()) || req.getQuantityG() < 0.1
                 || req.getQuantityG() > 10000) {
             throw new IllegalArgumentException("Quantity must be between 0.1 and 10000 grams");
         }
 
-        food.setName(truncate(blankToDefault(req.getName(), "Custom meal"), 255));
-        food.setIngredients(truncate(req.getIngredients(), 4000));
-        food.setPer100g(per100g);
-        String imageUrl = cleanImageUrl(req.getImageUrl());
-        if (imageUrl != null) food.setImageUrl(imageUrl);
+        FoodProduct food = entry.getFood();
+
+        if (food.getSource() == Source.MANUAL
+                && food.getBarcode() != null
+                && food.getBarcode().startsWith("meal-")) {
+            // Custom meal: also allow updating name, ingredients, per-100g nutrients
+            if (!food.getBarcode().equals(req.getBarcode().trim())) {
+                throw new IllegalArgumentException("Meal identifier cannot be changed");
+            }
+
+            Nutrients per100g = req.getPer100g();
+            if (!isValid(per100g.getCalories()) || !isValid(per100g.getProteinG())
+                    || !isValid(per100g.getCarbsG()) || !isValid(per100g.getFatG())) {
+                throw new IllegalArgumentException("Nutrient values must be zero or positive numbers");
+            }
+
+            food.setName(truncate(blankToDefault(req.getName(), "Custom meal"), 255));
+            food.setIngredients(truncate(req.getIngredients(), 4000));
+            food.setPer100g(per100g);
+            String imageUrl = cleanImageUrl(req.getImageUrl());
+            if (imageUrl != null) food.setImageUrl(imageUrl);
+        }
+        // For scanned / OpenFoodFacts products: only quantity changes; nutrients recompute
+        // proportionally from the stored per-100g values (BR-02). The food record itself
+        // is NOT modified so the scan flow remains unaffected.
 
         entry.setQuantityG(req.getQuantityG());
-        entry.recompute();
+        entry.recompute(); // computed = food.per100g.scale(quantityG / 100.0) – BR-02
         return toResponse(entry);
     }
 

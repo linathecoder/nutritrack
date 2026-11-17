@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit
 
 object ApiClient {
 
-    var BASE_URL = "http://192.168.1.29:8080/"
+    var BASE_URL = "http://192.168.1.17:8080/"
 
     private var tokenStore: TokenStore? = null
     private var onSessionExpired: () -> Unit = {}
