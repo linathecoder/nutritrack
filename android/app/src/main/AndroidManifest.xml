@@ -71,6 +71,11 @@
             android:windowSoftInputMode="adjustResize" />
 
         <activity
+            android:name=".WeightActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
             android:name=".ProductActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />

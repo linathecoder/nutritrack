@@ -2,18 +2,19 @@ package com.nutritrack.android
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
-import com.nutritrack.android.data.session.SessionManager
 import com.nutritrack.android.navigation.AuthNavigator
-import kotlinx.coroutines.launch
+import com.nutritrack.android.viewmodel.AuthViewModel
+import com.nutritrack.android.viewmodel.appViewModels
 
 class SplashActivity : AppCompatActivity() {
 
+    private val authViewModel: AuthViewModel by appViewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val session = SessionManager(this)
-        lifecycleScope.launch {
-            AuthNavigator.routeOnLaunch(this@SplashActivity, session)
+        authViewModel.navigation.observe(this) { event ->
+            event.getContentIfNotHandled()?.let { AuthNavigator.open(this, it.destination) }
         }
+        authViewModel.routeOnLaunch()
     }
 }

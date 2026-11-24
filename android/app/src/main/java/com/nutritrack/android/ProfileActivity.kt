@@ -14,21 +14,21 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.lifecycleScope
-import com.nutritrack.android.data.api.ApiClient
 import com.nutritrack.android.data.model.ProfileCalculationRequest
 import com.nutritrack.android.data.model.ProfileCalculationResponse
-import com.nutritrack.android.data.session.SessionManager
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.nutritrack.android.viewmodel.ProfileViewModel
+import com.nutritrack.android.viewmodel.appViewModels
 import com.google.android.material.textfield.TextInputEditText
 import coil.load
 import java.io.File
 import java.io.FileOutputStream
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.launch
 import java.util.Locale
 
 class ProfileActivity : AppCompatActivity() {
-    private lateinit var session: SessionManager
+    private val profileViewModel: ProfileViewModel by appViewModels()
+    private var userEmail: String = ""
+    private var saving = false
     private lateinit var name: TextInputEditText
     private lateinit var age: TextInputEditText
     private lateinit var height: TextInputEditText
@@ -54,7 +54,6 @@ class ProfileActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_profile)
 
-        session = SessionManager(this)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.profileRoot)) { v, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(bars.left, bars.top, bars.right, bars.bottom)
@@ -74,11 +73,11 @@ class ProfileActivity : AppCompatActivity() {
         saveButton = findViewById(R.id.btnSaveProfile)
         progress = findViewById(R.id.profileProgress)
 
-        findViewById<android.widget.TextView>(R.id.tvProfileEmail).text = session.getEmail().orEmpty()
+        userEmail = profileViewModel.currentEmail().orEmpty()
+        findViewById<android.widget.TextView>(R.id.tvProfileEmail).text = userEmail
         setupSpinner(workouts, listOf("None", "1–2 times / week", "3–4 times / week", "5–6 times / week"))
         setupSpinner(weightUnit, listOf("Kilograms (kg)", "Pounds (lb)"))
-        val savedUnit = getSharedPreferences("profile_preferences", MODE_PRIVATE)
-            .getString("weight_unit", "kg") ?: "kg"
+        val savedUnit = profileViewModel.weightUnit
         weightUnit.setSelection(if (savedUnit == "lb") 1 else 0)
         weightUnit.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
             override fun onNothingSelected(parent: android.widget.AdapterView<*>?) = Unit
@@ -91,8 +90,7 @@ class ProfileActivity : AppCompatActivity() {
                 }
                 currentWeightUnitPosition = position
                 updateWeightLabels()
-                if (weightUnitLoaded) getSharedPreferences("profile_preferences", MODE_PRIVATE)
-                    .edit().putString("weight_unit", if (position == 1) "lb" else "kg").apply()
+                if (weightUnitLoaded) profileViewModel.weightUnit = if (position == 1) "lb" else "kg"
             }
         }
 
@@ -101,6 +99,8 @@ class ProfileActivity : AppCompatActivity() {
         loadProfilePhoto()
         findViewById<View>(R.id.btnLogout).setOnClickListener { logout() }
         saveButton.setOnClickListener { saveProfile() }
+        findViewById<View>(R.id.btnResetProfile).setOnClickListener { confirmReset() }
+        observeViewModel()
 
         val content = findViewById<View>(R.id.profileContent)
         content.alpha = 0f
@@ -111,7 +111,7 @@ class ProfileActivity : AppCompatActivity() {
         loadProfile()
     }
 
-    private fun profilePhotoFile() = File(filesDir, "profile_picture_${session.getEmail().orEmpty().lowercase(Locale.US).hashCode()}.jpg")
+    private fun profilePhotoFile() = File(filesDir, "profile_picture_${userEmail.lowercase(Locale.US).hashCode()}.jpg")
 
     private fun loadProfilePhoto() {
         val file = profilePhotoFile()
@@ -151,53 +151,84 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private fun loadProfile() {
-        progress.visibility = View.VISIBLE
-        lifecycleScope.launch {
-            try {
-                val response = ApiClient.api.getProfile()
-                val profile = response.body()
-                if (response.isSuccessful && profile != null) {
-                    original = profile
-                    name.setText(profile.name.orEmpty())
-                    findViewById<android.widget.TextView>(R.id.tvProfileName).text =
-                        profile.name?.takeIf { it.isNotBlank() } ?: "NutriTrack member"
-                    age.setText(profile.age?.toString().orEmpty())
-                    height.setText(profile.heightCm?.let { fmt(it) }.orEmpty())
-                    weight.setText(profile.weightKg?.let { formatWeight(it) }.orEmpty())
-                    targetWeight.setText(profile.targetWeightKg?.let { formatWeight(it) }.orEmpty())
-                    currentWeightUnitPosition = weightUnit.selectedItemPosition
-                    weightUnitLoaded = true
-                    updateWeightLabels()
+        profileViewModel.loadProfile()
+    }
 
-                    sex.check(if (profile.sex.equals("FEMALE", true)) R.id.rbFemale else R.id.rbMale)
-                    activity.check(when (profile.activityLevel?.uppercase(Locale.US)) {
-                        "ACTIVE", "VERY_ACTIVE", "EXTREMELY_ACTIVE" -> R.id.rbActive
-                        "MODERATE", "LIGHT", "LIGHTLY_ACTIVE" -> R.id.rbModerate
-                        else -> R.id.rbSedentary
-                    })
-                    goal.check(when (profile.goal?.uppercase(Locale.US)) {
-                        "MAINTENANCE", "MAINTAIN_WEIGHT" -> R.id.rbMaintain
-                        "MUSCLE_GAIN", "BUILD_MUSCLE" -> R.id.rbBuildMuscle
-                        else -> R.id.rbLoseWeight
-                    })
-                    select(workouts, when (profile.workoutFrequency?.uppercase(Locale.US)) {
-                        "ONE_TWO" -> 1
-                        "THREE_FOUR" -> 2
-                        "FIVE_SIX" -> 3
-                        else -> 0
-                    })
-                    displayNutrition(profile)
-                } else {
-                    Toast.makeText(this@ProfileActivity, "Couldn't load your profile.", Toast.LENGTH_LONG).show()
-                }
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                Toast.makeText(this@ProfileActivity, "Connection error: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
-            } finally {
-                progress.visibility = View.GONE
+    private fun bindProfile(profile: ProfileCalculationResponse) {
+        original = profile
+        name.setText(profile.name.orEmpty())
+        findViewById<android.widget.TextView>(R.id.tvProfileName).text =
+            profile.name?.takeIf { it.isNotBlank() } ?: "NutriTrack member"
+        age.setText(profile.age?.toString().orEmpty())
+        height.setText(profile.heightCm?.let { fmt(it) }.orEmpty())
+        weight.setText(profile.weightKg?.let { formatWeight(it) }.orEmpty())
+        targetWeight.setText(profile.targetWeightKg?.let { formatWeight(it) }.orEmpty())
+        currentWeightUnitPosition = weightUnit.selectedItemPosition
+        weightUnitLoaded = true
+        updateWeightLabels()
+
+        sex.check(if (profile.sex.equals("FEMALE", true)) R.id.rbFemale else R.id.rbMale)
+        activity.check(when (profile.activityLevel?.uppercase(Locale.US)) {
+            "ACTIVE", "VERY_ACTIVE", "EXTREMELY_ACTIVE" -> R.id.rbActive
+            "MODERATE", "LIGHT", "LIGHTLY_ACTIVE" -> R.id.rbModerate
+            else -> R.id.rbSedentary
+        })
+        goal.check(when (profile.goal?.uppercase(Locale.US)) {
+            "MAINTENANCE", "MAINTAIN_WEIGHT" -> R.id.rbMaintain
+            "MUSCLE_GAIN", "BUILD_MUSCLE" -> R.id.rbBuildMuscle
+            else -> R.id.rbLoseWeight
+        })
+        select(workouts, when (profile.workoutFrequency?.uppercase(Locale.US)) {
+            "ONE_TWO" -> 1
+            "THREE_FOUR" -> 2
+            "FIVE_SIX" -> 3
+            else -> 0
+        })
+        displayNutrition(profile)
+    }
+
+    private fun observeViewModel() {
+        profileViewModel.profile.observe(this) { profile -> if (profile != null) bindProfile(profile) }
+        profileViewModel.loading.observe(this) { loading ->
+            progress.visibility = if (loading) View.VISIBLE else View.GONE
+            if (!loading) saving = false
+            saveButton.isEnabled = !loading
+            saveButton.text = if (saving) "Saving…" else "Save changes"
+        }
+        profileViewModel.message.observe(this) { event ->
+            event.getContentIfNotHandled()?.let { Toast.makeText(this, it, Toast.LENGTH_LONG).show() }
+        }
+        profileViewModel.updated.observe(this) { event ->
+            event.getContentIfNotHandled()?.let { finish() }
+        }
+        profileViewModel.reset.observe(this) { event ->
+            event.getContentIfNotHandled()?.let {
+                Toast.makeText(this, "Profile reset. Let's set it up again.", Toast.LENGTH_SHORT).show()
+                startActivity(Intent(this, ProfileSetupActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                })
+                finish()
             }
         }
+        profileViewModel.loggedOut.observe(this) { event ->
+            event.getContentIfNotHandled()?.let {
+                val intent = Intent(this, OnboardingActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                }
+                startActivity(intent)
+                overridePendingTransition(R.anim.profile_exit, R.anim.home_stay)
+                finish()
+            }
+        }
+    }
+
+    private fun confirmReset() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Reset your profile?")
+            .setMessage("Your body measurements and daily targets will be deleted. You will set them up again.")
+            .setNegativeButton("Cancel", null)
+            .setPositiveButton("Reset") { _, _ -> profileViewModel.resetProfile() }
+            .show()
     }
 
     private fun displayNutrition(profile: ProfileCalculationResponse) {
@@ -261,41 +292,12 @@ class ProfileActivity : AppCompatActivity() {
             targetWeightKg = targetValue
         )
 
-        saveButton.isEnabled = false
-        saveButton.text = "Saving…"
-        progress.visibility = View.VISIBLE
-        lifecycleScope.launch {
-            try {
-                val response = ApiClient.api.saveProfile(request)
-                val updated = response.body()
-                if (response.isSuccessful && updated != null) {
-                    original = updated
-                    session.saveProfileSummary(updated.name, updated.calories ?: 0)
-                    Toast.makeText(this@ProfileActivity, "Profile updated successfully", Toast.LENGTH_SHORT).show()
-                    finish()
-                } else {
-                    Toast.makeText(this@ProfileActivity, "Couldn't save changes. Please try again.", Toast.LENGTH_LONG).show()
-                }
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                Toast.makeText(this@ProfileActivity, "Connection error: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
-            } finally {
-                progress.visibility = View.GONE
-                saveButton.isEnabled = true
-                saveButton.text = "Save changes"
-            }
-        }
+        saving = true
+        profileViewModel.updateProfile(request)
     }
 
     private fun logout() {
-        session.clearSession()
-        val intent = Intent(this, OnboardingActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
-        startActivity(intent)
-        overridePendingTransition(R.anim.profile_exit, R.anim.home_stay)
-        finish()
+        profileViewModel.logout()
     }
 
     private fun select(spinner: android.widget.Spinner, index: Int) {

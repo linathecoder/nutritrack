@@ -27,24 +27,25 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.nutritrack.android.data.api.ApiClient
 import com.nutritrack.android.data.food.Facts
 import com.nutritrack.android.data.food.FoodItem
-import com.nutritrack.android.data.food.FoodRepository
+import com.nutritrack.android.data.food.SavedIngredient
 import com.nutritrack.android.data.food.HealthTier
 import com.nutritrack.android.data.food.Insight
 import com.nutritrack.android.data.food.MealLine
 import com.nutritrack.android.data.food.MealMath
 import com.nutritrack.android.data.food.Nutrition
 import com.nutritrack.android.data.food.ScannedMealItem
-import com.nutritrack.android.data.openfoodfacts.ProductRepository
-import com.nutritrack.android.data.openfoodfacts.ProductResult
 import com.nutritrack.android.data.food.shortName
 import com.nutritrack.android.data.model.LogFoodRequest
-import com.nutritrack.android.data.model.LogEntryDto
+import com.nutritrack.android.data.local.LogEntryEntity
+import com.nutritrack.android.viewmodel.MealViewModel
+import com.nutritrack.android.viewmodel.RestoreState
+import com.nutritrack.android.viewmodel.SaveState
+import com.nutritrack.android.viewmodel.SearchState
+import com.nutritrack.android.viewmodel.appViewModels
 import com.nutritrack.android.data.model.NutrientsDto
 import com.nutritrack.android.databinding.ActivityCreateMealBinding
 import com.nutritrack.android.databinding.ItemDetailRowBinding
@@ -73,7 +74,7 @@ class CreateMealActivity : AppCompatActivity() {
     private val lines = mutableListOf<MealLine>()
     private val cards = mutableMapOf<Long, CardHolder>()
     private var nextUid = 1L
-    private var searchJob: Job? = null
+    private val mealViewModel: MealViewModel by appViewModels()
     private var insightsExpanded = false
     private var detailsExpanded = false
     private var saving = false
@@ -82,13 +83,6 @@ class CreateMealActivity : AppCompatActivity() {
     private var editingEntryName: String? = null
     private var editingIngredients: String? = null
     private var editingQuantityG: Double = 0.0
-
-    private data class SavedIngredient(
-        val foodId: String,
-        val qty: Double,
-        val unitIndex: Int = 0,
-        val food: FoodItem? = null
-    )
 
     private val healthCard by lazy {
         HealthCardRenderer(
@@ -138,6 +132,7 @@ class CreateMealActivity : AppCompatActivity() {
         setupStaticSections()
         setupMealName()
         setupSearch()
+        observeViewModel()
         refreshAll()
         scheduleSearch("", immediate = true)
         readEditIntent()
@@ -158,53 +153,73 @@ class CreateMealActivity : AppCompatActivity() {
     }
 
     private fun loadMealForEditing() {
-        lifecycleScope.launch {
-            try {
-                FoodRepository.ensureLoaded(applicationContext)
-                val raw = editingIngredients
-                val parsed = raw?.let { runCatching {
-                    val type = object : TypeToken<List<SavedIngredient>>() {}.type
-                    Gson().fromJson<List<SavedIngredient>>(it, type)
-                }.getOrNull() }
-                if (!parsed.isNullOrEmpty()) {
-                    parsed.forEach { saved ->
-                        var food = FoodRepository.findById(saved.foodId) ?: saved.food
-                        if (food == null && saved.foodId.startsWith("scan-")) {
-                            val barcode = saved.foodId.removePrefix("scan-")
-                            food = when (val result = ProductRepository.lookup(barcode)) {
-                                is ProductResult.Found -> ScannedMealItem.from(result.product, saved.qty).toFoodItem()
-                                else -> null
-                            }
-                        }
-                        if (food != null) {
-                            val units = MealMath.unitsFor(food)
-                            val index = saved.unitIndex.coerceIn(0, units.lastIndex)
-                            val line = MealLine(nextUid++, food, saved.qty, units, index)
-                            lines += line
-                            addCard(line)
-                        }
-                    }
-                } else if (!raw.isNullOrBlank()) {
-                    val pattern = Regex("(.+?)\\s*\\(([0-9]+(?:[.,][0-9]+)?)\\s*g\\)")
-                    pattern.findAll(raw).forEach { match ->
-                        val label = match.groupValues[1].trim()
-                        val grams = match.groupValues[2].replace(',', '.').toDoubleOrNull() ?: return@forEach
-                        val food = FoodRepository.search(label, limit = 10).firstOrNull() ?: return@forEach
-                        val units = MealMath.unitsFor(food)
-                        val line = MealLine(nextUid++, food, grams, units)
-                        lines += line
-                        addCard(line)
-                    }
+        mealViewModel.restoreIngredients(editingIngredients)
+    }
+
+    private fun onIngredientsRestored(state: RestoreState) {
+        when (state) {
+            is RestoreState.Done -> {
+                state.items.forEach { item ->
+                    val units = MealMath.unitsFor(item.food)
+                    val index = (item.unitIndex ?: 0).coerceIn(0, units.lastIndex)
+                    val line = MealLine(nextUid++, item.food, item.qty, units, index)
+                    lines += line
+                    addCard(line)
                 }
                 resultsAdapter.setAdded(lines.map { it.food.id }.toSet())
                 refreshAll()
                 if (lines.isEmpty()) {
                     showDockError("The saved ingredient details aren't available for this meal. You can still add ingredients, but its original ingredients couldn't be restored.")
                 }
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                showDockError("Couldn't load this meal's ingredients: ${e.localizedMessage ?: "unknown error"}")
+            }
+            is RestoreState.Failed ->
+                showDockError("Couldn't load this meal's ingredients: ${state.message}")
+        }
+    }
+
+    private fun observeViewModel() {
+        mealViewModel.searchState.observe(this) { state ->
+            when (state) {
+                SearchState.Loading -> showSearchState("Loading ingredients…")
+                is SearchState.Results -> {
+                    resultsAdapter.submitList(state.foods) { binding.rvResults.scrollToPosition(0) }
+                    if (state.foods.isEmpty()) {
+                        showSearchState("No matching ingredients found\nTry searching chicken, rice, eggs, lentils or salmon")
+                    } else {
+                        binding.tvSearchState.visibility = View.GONE
+                    }
+                }
+                SearchState.Failed -> {
+                    resultsAdapter.submitList(emptyList())
+                    showSearchState("Couldn't load the ingredient list.")
+                }
+            }
+        }
+        mealViewModel.restored.observe(this) { event ->
+            event.getContentIfNotHandled()?.let { onIngredientsRestored(it) }
+        }
+        mealViewModel.saveState.observe(this) { state ->
+            when (state) {
+                SaveState.Idle -> setSaving(false)
+                SaveState.Saving -> {
+                    setSaving(true)
+                    binding.tvDockError.visibility = View.GONE
+                }
+                is SaveState.Saved -> {
+                    setSaving(false)
+                    val action = if (state.updated) "Updated" else "Saved"
+                    val kcal = MealMath.total(lines).kcal.roundToInt()
+                    Toast.makeText(this, "$action \"${mealName()}\" ($kcal kcal)", Toast.LENGTH_SHORT).show()
+                    startActivity(
+                        Intent(this, MainActivity::class.java)
+                            .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                    )
+                    finish()
+                }
+                is SaveState.Failed -> {
+                    setSaving(false)
+                    showDockError(state.message)
+                }
             }
         }
     }
@@ -266,7 +281,7 @@ class CreateMealActivity : AppCompatActivity() {
     }
 
     private fun setupSearch() {
-        resultsAdapter = FoodResultAdapter { food -> addFood(food) }
+        resultsAdapter = FoodResultAdapter(mealViewModel::tintFor) { food -> addFood(food) }
         binding.rvResults.layoutManager = LinearLayoutManager(this)
         binding.rvResults.adapter = resultsAdapter
         binding.rvResults.itemAnimator = null
@@ -290,26 +305,7 @@ class CreateMealActivity : AppCompatActivity() {
     }
 
     private fun scheduleSearch(query: String, immediate: Boolean = false) {
-        searchJob?.cancel()
-        searchJob = lifecycleScope.launch {
-            if (!immediate) delay(120)
-            if (!FoodRepository.isLoaded) showSearchState("Loading ingredients…")
-            try {
-                FoodRepository.ensureLoaded(applicationContext)
-                val results = FoodRepository.search(query)
-                resultsAdapter.submitList(results) { binding.rvResults.scrollToPosition(0) }
-                if (results.isEmpty()) {
-                    showSearchState("No matching ingredients found\nTry searching chicken, rice, eggs, lentils or salmon")
-                } else {
-                    binding.tvSearchState.visibility = View.GONE
-                }
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                resultsAdapter.submitList(emptyList())
-                showSearchState("Couldn't load the ingredient list.")
-            }
-        }
+        mealViewModel.search(query, immediate)
     }
 
     private fun showSearchState(message: String) {
@@ -374,7 +370,7 @@ class CreateMealActivity : AppCompatActivity() {
         cards[line.uid] = holder
 
         b.tvIngEmoji.text = line.food.icon
-        b.tvIngEmoji.backgroundTintList = ColorStateList.valueOf(FoodRepository.tintFor(line.food.category))
+        b.tvIngEmoji.backgroundTintList = ColorStateList.valueOf(mealViewModel.tintFor(line.food.category))
         b.tvIngName.text = line.food.name
 
         b.spinnerIngUnit.adapter = ArrayAdapter(this, R.layout.item_unit_compact, line.units.map { it.label }).also {
@@ -571,42 +567,7 @@ class CreateMealActivity : AppCompatActivity() {
             quantityG = totals.grams
         )
 
-        setSaving(true)
-        binding.tvDockError.visibility = View.GONE
-        lifecycleScope.launch {
-            try {
-                val response = if (!editingEntryId.isNullOrBlank()) {
-                    ApiClient.api.updateLog(editingEntryId!!, request)
-                } else {
-                    ApiClient.api.logFood(request)
-                }
-                if (response.isSuccessful) {
-                    val savedId = editingEntryId ?: response.body()?.id
-                    if (!savedId.isNullOrBlank()) {
-                        getSharedPreferences(MEAL_PREFS, MODE_PRIVATE).edit()
-                            .putString("ingredients_$savedId", request.ingredients).apply()
-                    }
-                    val action = if (editingEntryId.isNullOrBlank()) "Saved" else "Updated"
-                    Toast.makeText(this@CreateMealActivity, "$action \"$name\" (${totals.kcal.roundToInt()} kcal)", Toast.LENGTH_SHORT).show()
-                    startActivity(
-                        Intent(this@CreateMealActivity, MainActivity::class.java)
-                            .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-                    )
-                    finish()
-                } else if (response.code() != 401) {
-                    showDockError(
-                        parseErrorMessage(response.errorBody()?.string())
-                            ?: "Couldn't save this meal (error ${response.code()})."
-                    )
-                }
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                showDockError("Unable to reach the server: ${e.localizedMessage ?: "connection error"}")
-            } finally {
-                setSaving(false)
-            }
-        }
+        mealViewModel.saveMeal(request, editingEntryId)
     }
 
     private fun setSaving(value: Boolean) {
@@ -618,15 +579,6 @@ class CreateMealActivity : AppCompatActivity() {
     private fun showDockError(message: String) {
         binding.tvDockError.text = message
         binding.tvDockError.visibility = View.VISIBLE
-    }
-
-    private fun parseErrorMessage(json: String?): String? {
-        if (json.isNullOrEmpty()) return null
-        return try {
-            JSONObject(json).optString("message", "").takeIf { it.isNotEmpty() }
-        } catch (_: Exception) {
-            null
-        }
     }
 
     private fun handleBack() {
@@ -663,10 +615,9 @@ class CreateMealActivity : AppCompatActivity() {
         private const val EXTRA_ENTRY_NAME = "entry_name"
         private const val EXTRA_ENTRY_INGREDIENTS = "entry_ingredients"
         private const val EXTRA_ENTRY_QUANTITY = "entry_quantity"
-        private const val MEAL_PREFS = "saved_meal_ingredients"
         private const val MAX_MEAL_GRAMS = 10_000.0
 
-        fun editIntent(context: Context, entry: LogEntryDto): Intent =
+        fun editIntent(context: Context, entry: LogEntryEntity): Intent =
             Intent(context, CreateMealActivity::class.java)
                 .putExtra(EXTRA_ENTRY_ID, entry.id)
                 .putExtra(EXTRA_ENTRY_BARCODE, entry.barcode)

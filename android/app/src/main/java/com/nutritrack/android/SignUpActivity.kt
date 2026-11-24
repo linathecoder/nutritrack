@@ -10,19 +10,16 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.text.HtmlCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.lifecycleScope
-import com.nutritrack.android.data.api.ApiClient
-import com.nutritrack.android.data.model.SignUpRequest
-import com.nutritrack.android.data.session.SessionManager
 import com.nutritrack.android.navigation.AuthNavigator
 import com.nutritrack.android.databinding.ActivitySignUpBinding
-import kotlinx.coroutines.launch
-import org.json.JSONObject
+import com.nutritrack.android.viewmodel.AuthUiState
+import com.nutritrack.android.viewmodel.AuthViewModel
+import com.nutritrack.android.viewmodel.appViewModels
 
 class SignUpActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySignUpBinding
-    private lateinit var sessionManager: SessionManager
+    private val authViewModel: AuthViewModel by appViewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,8 +27,6 @@ class SignUpActivity : AppCompatActivity() {
 
         binding = ActivitySignUpBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        sessionManager = SessionManager(this)
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.rootLayout) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -41,6 +36,20 @@ class SignUpActivity : AppCompatActivity() {
 
         setupViews()
         setupListeners()
+        observeViewModel()
+    }
+
+    private fun observeViewModel() {
+        authViewModel.state.observe(this) { state ->
+            setLoading(state is AuthUiState.Loading)
+            if (state is AuthUiState.Error) showError(state.message)
+        }
+        authViewModel.navigation.observe(this) { event ->
+            event.getContentIfNotHandled()?.let { nav ->
+                nav.message?.let { Toast.makeText(this, it, Toast.LENGTH_SHORT).show() }
+                AuthNavigator.open(this, nav.destination)
+            }
+        }
     }
 
     private fun setupViews() {
@@ -98,33 +107,7 @@ class SignUpActivity : AppCompatActivity() {
             binding.tilConfirmPassword.error = null
         }
 
-        setLoading(true)
-
-        lifecycleScope.launch {
-            try {
-                val response = ApiClient.api.signUp(SignUpRequest(email, password))
-                if (response.isSuccessful && response.body() != null) {
-                    val auth = response.body()!!
-                    val token = auth.token
-                    if (token.isNullOrEmpty()) {
-                        showError("Sign up failed: the server did not return a session token.")
-                        return@launch
-                    }
-                    sessionManager.saveUser(auth.userId ?: "", email, token)
-
-                    Toast.makeText(this@SignUpActivity, "Account created successfully!", Toast.LENGTH_SHORT).show()
-
-                    AuthNavigator.routeAfterSignUp(this@SignUpActivity, sessionManager)
-                } else {
-                    val errorMsg = parseErrorMessage(response.errorBody()?.string())
-                    showError(errorMsg ?: "Sign up failed. Please try again.")
-                }
-            } catch (e: Exception) {
-                showError("Unable to connect to backend: ${e.localizedMessage ?: "Connection error"}")
-            } finally {
-                setLoading(false)
-            }
-        }
+        authViewModel.signUp(email, password)
     }
 
     private fun setLoading(isLoading: Boolean) {
@@ -136,15 +119,5 @@ class SignUpActivity : AppCompatActivity() {
     private fun showError(message: String) {
         binding.tvError.text = message
         binding.tvError.visibility = View.VISIBLE
-    }
-
-    private fun parseErrorMessage(jsonStr: String?): String? {
-        if (jsonStr.isNullOrEmpty()) return null
-        return try {
-            val json = JSONObject(jsonStr)
-            json.optString("message", null)
-        } catch (_: Exception) {
-            null
-        }
     }
 }

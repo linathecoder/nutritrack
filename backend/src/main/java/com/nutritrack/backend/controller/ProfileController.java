@@ -38,6 +38,21 @@ public class ProfileController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @PutMapping
+    public ResponseEntity<ProfileCalculationResponse> update(
+            @AuthenticationPrincipal UUID userId,
+            @Valid @RequestBody ProfileCalculationRequest request
+    ) {
+        request.setUserId(userId);
+        return ResponseEntity.ok(profileService.updateProfile(request));
+    }
+
+    @DeleteMapping
+    public ResponseEntity<Void> delete(@AuthenticationPrincipal UUID userId) {
+        profileService.deleteProfile(userId);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/me")
     public ResponseEntity<ProfileCalculationResponse> getMyProfile(@AuthenticationPrincipal UUID userId) {
         ProfileCalculationResponse response = profileService.getProfileByUserId(userId);

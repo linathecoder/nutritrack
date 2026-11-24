@@ -152,6 +152,22 @@ public class ProfileService {
     }
 
     @Transactional
+    public ProfileCalculationResponse updateProfile(ProfileCalculationRequest request) {
+        if (request.getUserId() == null || userProfileRepository.findByUserId(request.getUserId()).isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Profile not found for user: " + request.getUserId());
+        }
+        return calculateAndSaveProfile(request);
+    }
+
+    @Transactional
+    public void deleteProfile(UUID userId) {
+        UserProfile profile = userProfileRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Profile not found for user: " + userId));
+        macroTargetRepository.findByUserId(userId).ifPresent(macroTargetRepository::delete);
+        userProfileRepository.delete(profile);
+    }
+
+    @Transactional
     public ProfileCalculationResponse getProfileByUserId(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id: " + userId));

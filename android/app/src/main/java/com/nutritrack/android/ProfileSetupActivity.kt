@@ -9,7 +9,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.widget.ViewPager2
 import com.nutritrack.android.ProfileSetupPagerAdapter.Companion.STEP_ACTIVITY
 import com.nutritrack.android.ProfileSetupPagerAdapter.Companion.STEP_GOAL
@@ -18,19 +17,17 @@ import com.nutritrack.android.ProfileSetupPagerAdapter.Companion.STEP_RESULTS
 import com.nutritrack.android.ProfileSetupPagerAdapter.Companion.STEP_SEX
 import com.nutritrack.android.ProfileSetupPagerAdapter.Companion.STEP_WORKOUTS
 import com.nutritrack.android.ProfileSetupPagerAdapter.Companion.TOTAL_STEPS
-import com.nutritrack.android.data.api.ApiClient
 import com.nutritrack.android.data.model.ProfileCalculationRequest
 import com.nutritrack.android.data.model.ProfileCalculationResponse
-import com.nutritrack.android.data.session.SessionManager
+import com.nutritrack.android.viewmodel.ProfileViewModel
+import com.nutritrack.android.viewmodel.appViewModels
 import com.nutritrack.android.databinding.ActivityProfileSetupBinding
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.launch
 
 class ProfileSetupActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityProfileSetupBinding
     private lateinit var adapter: ProfileSetupPagerAdapter
-    private lateinit var sessionManager: SessionManager
+    private val profileViewModel: ProfileViewModel by appViewModels()
 
     private var latestResult: ProfileCalculationResponse? = null
 
@@ -43,8 +40,6 @@ class ProfileSetupActivity : AppCompatActivity() {
         binding = ActivityProfileSetupBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        sessionManager = SessionManager(this)
-
         ViewCompat.setOnApplyWindowInsetsListener(binding.rootLayout) { v, insets ->
             val sys = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(sys.left, sys.top, sys.right, sys.bottom)
@@ -54,6 +49,21 @@ class ProfileSetupActivity : AppCompatActivity() {
         setupPager()
         setupListeners()
         updateUiForStep(0)
+        observeViewModel()
+    }
+
+    private fun observeViewModel() {
+        profileViewModel.loading.observe(this) { setLoading(it) }
+        profileViewModel.created.observe(this) { event ->
+            event.getContentIfNotHandled()?.let { body ->
+                latestResult = body
+                adapter.setResults(body)
+                binding.viewPager.currentItem = STEP_RESULTS
+            }
+        }
+        profileViewModel.message.observe(this) { event ->
+            event.getContentIfNotHandled()?.let { Toast.makeText(this, it, Toast.LENGTH_LONG).show() }
+        }
     }
 
     private fun setupPager() {
@@ -121,7 +131,7 @@ class ProfileSetupActivity : AppCompatActivity() {
     }
 
     private fun submitProfile() {
-        if (!sessionManager.isLoggedIn()) {
+        if (!profileViewModel.isLoggedIn()) {
             Toast.makeText(this, "Session expired. Please log in again.", Toast.LENGTH_SHORT).show()
             finish()
             return
@@ -140,34 +150,7 @@ class ProfileSetupActivity : AppCompatActivity() {
 
         setLoading(true)
 
-        lifecycleScope.launch {
-            try {
-                val response = ApiClient.api.saveProfile(request)
-                setLoading(false)
-                val body = response.body()
-                if (response.isSuccessful && body != null) {
-                    latestResult = body
-                    sessionManager.saveProfileSummary(body.name, body.calories ?: 0)
-                    adapter.setResults(body)
-                    binding.viewPager.currentItem = STEP_RESULTS
-                } else {
-                    Toast.makeText(
-                        this@ProfileSetupActivity,
-                        "Failed to save profile. Please try again.",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                setLoading(false)
-                Toast.makeText(
-                    this@ProfileSetupActivity,
-                    "Connection error: ${e.localizedMessage}",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-        }
+        profileViewModel.createProfile(request)
     }
 
     private fun goToHome() {

@@ -11,23 +11,16 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.widget.ImageViewCompat
-import androidx.lifecycle.lifecycleScope
 import coil.load
-import com.nutritrack.android.data.api.ApiClient
-import com.nutritrack.android.data.model.DailyLogResponse
-import com.nutritrack.android.data.model.LogEntryDto
+import com.nutritrack.android.data.local.LogEntryEntity
 import com.nutritrack.android.data.model.NutrientsDto
-import com.nutritrack.android.data.model.ProfileCalculationResponse
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.nutritrack.android.data.session.SessionManager
+import com.nutritrack.android.viewmodel.AuthViewModel
+import com.nutritrack.android.viewmodel.DiaryViewModel
+import com.nutritrack.android.viewmodel.appViewModels
 import com.nutritrack.android.databinding.ActivityMainBinding
 import com.nutritrack.android.databinding.ItemMacroCardBinding
 import com.nutritrack.android.databinding.ItemMealBinding
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
 import kotlin.math.abs
 import java.text.NumberFormat
 import java.io.File
@@ -41,17 +34,16 @@ import kotlin.math.roundToInt
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private lateinit var session: SessionManager
+    private val authViewModel: AuthViewModel by appViewModels()
+    private val diaryViewModel: DiaryViewModel by appViewModels()
+    private var userEmail: String = ""
     private val numberFormat: NumberFormat = NumberFormat.getIntegerInstance()
-    private var loadJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        session = SessionManager(this)
-
         ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(bars.left, bars.top, bars.right, 0)
@@ -60,16 +52,16 @@ class MainActivity : AppCompatActivity() {
         }
 
         setupStaticUi()
+        observeViewModel()
     }
 
     override fun onResume() {
         super.onResume()
-        loadDashboard()
+        diaryViewModel.refresh()
     }
 
     private fun setupStaticUi() {
-        setGreeting(session.getUserName())
-        loadProfilePhoto()
+        setGreeting(null)
 
         bindMacroStatic(binding.cardProtein, "🥩", "Protein", R.color.macro_protein_bg)
         bindMacroStatic(binding.cardCarbs, "🌾", "Carbs", R.color.macro_carbs_bg)
@@ -86,7 +78,9 @@ class MainActivity : AppCompatActivity() {
 
         binding.tabHome.setOnClickListener {  }
         binding.tabDiary.setOnClickListener {  }
-        binding.tabAnalysis.setOnClickListener {  }
+        binding.tabAnalysis.setOnClickListener {
+            startActivity(Intent(this, WeightActivity::class.java))
+        }
         binding.tabSettings.setOnClickListener {  }
         binding.btnAvatar.setOnClickListener {
             startActivity(Intent(this, ProfileActivity::class.java))
@@ -99,7 +93,7 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, CreateMealActivity::class.java))
         }
 
-        binding.btnRetry.setOnClickListener { loadDashboard() }
+        binding.btnRetry.setOnClickListener { diaryViewModel.refresh() }
     }
 
     private fun setGreeting(name: String?) {
@@ -110,7 +104,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadProfilePhoto() {
-        val photoFile = File(filesDir, "profile_picture_${session.getEmail().orEmpty().lowercase(Locale.US).hashCode()}.jpg")
+        val photoFile = File(filesDir, "profile_picture_${userEmail.lowercase(Locale.US).hashCode()}.jpg")
         if (photoFile.exists()) {
             binding.ivAvatarPhoto.load(photoFile) {
                 crossfade(true)
@@ -136,36 +130,25 @@ class MainActivity : AppCompatActivity() {
         card.tvMacroName.text = name
     }
 
-    private fun loadDashboard() {
-        loadJob?.cancel()
-        loadJob = lifecycleScope.launch {
-            binding.progressLoading.visibility = View.VISIBLE
-            binding.errorCard.visibility = View.GONE
-            try {
-                val (profileRes, logRes) = coroutineScope {
-                    val profile = async { ApiClient.api.getProfile() }
-                    val log = async { ApiClient.api.getTodayLog() }
-                    profile.await() to log.await()
-                }
-                val profile = profileRes.body()
-                val log = logRes.body()
-                when {
-                    profileRes.isSuccessful && profile != null && logRes.isSuccessful && log != null -> {
-                        session.saveProfileSummary(profile.name, profile.calories ?: 0)
-                        setGreeting(profile.name)
-                        render(profile, log)
-                    }
-                    profileRes.code() == 401 || logRes.code() == 401 -> Unit
-                    else -> showError(
-                        "Couldn't load today's data (profile ${profileRes.code()}, meals ${logRes.code()})."
-                    )
-                }
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                showError("Unable to reach the server: ${e.localizedMessage ?: "connection error"}")
-            } finally {
-                binding.progressLoading.visibility = View.INVISIBLE
+    private fun observeViewModel() {
+        authViewModel.authenticatedUser.observe(this) { user ->
+            if (user != null) {
+                userEmail = user.email
+                setGreeting(user.name)
+            }
+        }
+        diaryViewModel.entries.observe(this) { renderMeals(it) }
+        diaryViewModel.totals.observe(this) { renderTotals() }
+        diaryViewModel.profile.observe(this) { renderTotals() }
+        diaryViewModel.loading.observe(this) { loading ->
+            binding.progressLoading.visibility = if (loading) View.VISIBLE else View.INVISIBLE
+        }
+        diaryViewModel.error.observe(this) { message ->
+            if (message == null) binding.errorCard.visibility = View.GONE else showError(message)
+        }
+        diaryViewModel.message.observe(this) { event ->
+            event.getContentIfNotHandled()?.let {
+                android.widget.Toast.makeText(this, it, android.widget.Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -175,16 +158,14 @@ class MainActivity : AppCompatActivity() {
         binding.errorCard.visibility = View.VISIBLE
     }
 
-    private fun render(profile: ProfileCalculationResponse, log: DailyLogResponse) {
-        setGreeting(profile.name)
-        val totals = log.totals ?: NutrientsDto()
+    private fun renderTotals() {
+        val profile = diaryViewModel.profile.value ?: return
+        val totals = diaryViewModel.totals.value ?: NutrientsDto()
 
         renderCalories(consumed = totals.calories, goal = (profile.calories ?: 0).toDouble())
         renderMacro(binding.cardProtein, totals.proteinG, profile.proteinG ?: 0.0)
         renderMacro(binding.cardCarbs, totals.carbsG, profile.carbsG ?: 0.0)
         renderMacro(binding.cardFat, totals.fatG, profile.fatG ?: 0.0)
-
-        renderMeals(log.entries.orEmpty())
     }
 
     private fun renderCalories(consumed: Double, goal: Double) {
@@ -210,7 +191,7 @@ class MainActivity : AppCompatActivity() {
         card.progressMacro.setProgressCompat(percent.coerceIn(0, 100), true)
     }
 
-    private fun renderMeals(entries: List<LogEntryDto>) {
+    private fun renderMeals(entries: List<LogEntryEntity>) {
         binding.mealsContainer.removeAllViews()
         binding.tvMealsCount.text = "${entries.size} logged"
 
@@ -239,9 +220,8 @@ class MainActivity : AppCompatActivity() {
 
             item.tvMealName.text = entry.name?.takeIf { it.isNotBlank() } ?: "Unnamed food"
 
-            val n = entry.computed ?: NutrientsDto()
             item.tvMealMeta.text =
-                "${n.calories.roundToInt()} kcal  •  ${n.proteinG.roundToInt()}g protein"
+                "${entry.calories.roundToInt()} kcal  •  ${entry.proteinG.roundToInt()}g protein"
             item.tvMealTime.text = parseTime(entry.loggedAt)?.format(timeFormat).orEmpty()
             item.tvMealQty.text = "${entry.quantityG.roundToInt()} g"
 
@@ -312,22 +292,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun deleteMeal(id: String) {
-        lifecycleScope.launch {
-            try {
-                val response = ApiClient.api.deleteLog(id)
-                if (response.isSuccessful) {
-                    getSharedPreferences("saved_meal_ingredients", MODE_PRIVATE).edit().remove("ingredients_$id").apply()
-                    android.widget.Toast.makeText(this@MainActivity, "Meal deleted", android.widget.Toast.LENGTH_SHORT).show()
-                    loadDashboard()
-                } else if (response.code() != 401) {
-                    android.widget.Toast.makeText(this@MainActivity, "Couldn't delete meal (${response.code()}).", android.widget.Toast.LENGTH_LONG).show()
-                }
-            } catch (e: Exception) {
-                if (e !is CancellationException) android.widget.Toast.makeText(
-                    this@MainActivity, "Unable to delete meal: ${e.localizedMessage ?: "connection error"}", android.widget.Toast.LENGTH_LONG
-                ).show()
-            }
-        }
+        diaryViewModel.deleteMeal(id)
     }
 
     private fun dp(value: Int): Int = (value * resources.displayMetrics.density).roundToInt()

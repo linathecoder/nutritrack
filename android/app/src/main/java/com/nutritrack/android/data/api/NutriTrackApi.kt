@@ -21,6 +21,12 @@ interface NutriTrackApi {
     @POST("api/profile")
     suspend fun saveProfile(@Body request: ProfileCalculationRequest): Response<ProfileCalculationResponse>
 
+    @PUT("api/profile")
+    suspend fun updateProfile(@Body request: ProfileCalculationRequest): Response<ProfileCalculationResponse>
+
+    @DELETE("api/profile")
+    suspend fun deleteProfile(): Response<Unit>
+
     @GET("api/profile/me")
     suspend fun getProfile(): Response<ProfileCalculationResponse>
 
@@ -38,6 +44,12 @@ interface NutriTrackApi {
 
     @POST("api/weight")
     suspend fun logWeight(@Body request: WeightRequest): Response<WeightEntryDto>
+
+    @PUT("api/weight/{date}")
+    suspend fun updateWeight(@Path("date") date: String, @Body request: WeightRequest): Response<WeightEntryDto>
+
+    @DELETE("api/weight/{date}")
+    suspend fun deleteWeight(@Path("date") date: String): Response<Unit>
 
     @GET("api/weight")
     suspend fun getWeightHistory(@Query("days") days: Int): Response<WeightHistoryResponse>

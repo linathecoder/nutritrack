@@ -63,6 +63,29 @@ public class WeightService {
         return new WeightResponse(entry.getDate(), entry.getWeightKg());
     }
 
+    @Transactional
+    public WeightResponse update(UUID userId, LocalDate date, WeightRequest req) {
+        if (weightEntryRepository.findByUserIdAndDate(userId, date).isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Weight entry not found for " + date);
+        }
+        req.setDate(date);
+        return log(userId, req);
+    }
+
+    @Transactional
+    public void delete(UUID userId, LocalDate date) {
+        WeightEntry entry = weightEntryRepository.findByUserIdAndDate(userId, date)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Weight entry not found for " + date));
+        weightEntryRepository.delete(entry);
+        weightEntryRepository.flush();
+        // keep the profile's current weight in sync with the latest remaining entry
+        weightEntryRepository.findFirstByUserIdOrderByDateDesc(userId).ifPresent(latest ->
+                userProfileRepository.findByUserId(userId).ifPresent(profile -> {
+                    profile.setWeightKg(latest.getWeightKg());
+                    userProfileRepository.save(profile);
+                }));
+    }
+
     @Transactional(readOnly = true)
     public WeightHistoryResponse history(UUID userId, int days) {
         int range = Math.max(1, Math.min(days, MAX_DAYS));
