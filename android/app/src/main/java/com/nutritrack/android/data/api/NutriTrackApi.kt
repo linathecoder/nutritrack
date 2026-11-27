@@ -24,11 +24,11 @@ interface NutriTrackApi {
     @PUT("api/profile")
     suspend fun updateProfile(@Body request: ProfileCalculationRequest): Response<ProfileCalculationResponse>
 
-    @DELETE("api/profile")
-    suspend fun deleteProfile(): Response<Unit>
-
     @GET("api/profile/me")
     suspend fun getProfile(): Response<ProfileCalculationResponse>
+
+    @DELETE("api/profile")
+    suspend fun deleteProfile(): Response<Unit>
 
     @GET("api/logs/today")
     suspend fun getTodayLog(): Response<DailyLogResponse>
@@ -53,4 +53,12 @@ interface NutriTrackApi {
 
     @GET("api/weight")
     suspend fun getWeightHistory(@Query("days") days: Int): Response<WeightHistoryResponse>
+
+    /** One row per logged day over the last N days (Analysis page). */
+    @GET("api/logs/history")
+    suspend fun getLogHistory(@Query("days") days: Int): Response<LogHistoryResponse>
+
+    /** Meals created with "Create a meal" (My Meals page). */
+    @GET("api/meals")
+    suspend fun getSavedMeals(): Response<List<SavedMealDto>>
 }

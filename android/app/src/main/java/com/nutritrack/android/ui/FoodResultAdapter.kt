@@ -8,14 +8,12 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.nutritrack.android.R
 import com.nutritrack.android.data.food.FoodItem
+import com.nutritrack.android.data.food.FoodRepository
 import com.nutritrack.android.databinding.ItemFoodResultBinding
 import java.util.Locale
 import kotlin.math.roundToInt
 
-class FoodResultAdapter(
-    private val tintFor: (String) -> Int,
-    private val onAdd: (FoodItem) -> Unit
-) :
+class FoodResultAdapter(private val onAdd: (FoodItem) -> Unit) :
     ListAdapter<FoodItem, FoodResultAdapter.Holder>(Diff) {
 
     private var added: Set<String> = emptySet()
@@ -35,7 +33,7 @@ class FoodResultAdapter(
         val food = getItem(position)
         val b = holder.binding
         b.tvFoodEmoji.text = food.icon
-        b.tvFoodEmoji.backgroundTintList = ColorStateList.valueOf(tintFor(food.category))
+        b.tvFoodEmoji.backgroundTintList = ColorStateList.valueOf(FoodRepository.tintFor(food.category))
         b.tvFoodName.text = food.name
         val n = food.per100g
         b.tvFoodMacros.text = "${n.kcal.roundToInt()} kcal  •  P ${g(n.protein)}g · C ${g(n.carbs)}g · F ${g(n.fat)}g"

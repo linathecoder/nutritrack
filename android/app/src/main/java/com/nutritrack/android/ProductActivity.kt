@@ -20,7 +20,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
 import coil.load
+import com.nutritrack.android.data.api.ApiClient
 import com.nutritrack.android.data.food.HealthScoring
 import com.nutritrack.android.data.food.HealthTier
 import com.nutritrack.android.data.food.MealMath
@@ -30,10 +32,8 @@ import com.nutritrack.android.ui.HealthCardRenderer
 import com.nutritrack.android.ui.InsightRenderer
 import com.nutritrack.android.data.model.LogFoodRequest
 import com.nutritrack.android.data.model.NutrientsDto
-import com.nutritrack.android.viewmodel.ProductUiState
-import com.nutritrack.android.viewmodel.ProductViewModel
-import com.nutritrack.android.viewmodel.SaveState
-import com.nutritrack.android.viewmodel.appViewModels
+import com.nutritrack.android.data.openfoodfacts.ProductRepository
+import com.nutritrack.android.data.openfoodfacts.ProductResult
 import com.nutritrack.android.data.openfoodfacts.ScannedProduct
 import com.nutritrack.android.databinding.ActivityProductBinding
 import com.nutritrack.android.databinding.ItemDetailRowBinding
@@ -53,7 +53,7 @@ class ProductActivity : AppCompatActivity() {
     private lateinit var binding: ActivityProductBinding
     private lateinit var barcode: String
     private var forMeal = false
-    private val productViewModel: ProductViewModel by appViewModels()
+    private var loadJob: Job? = null
 
     private var product: ScannedProduct? = null
     private var ingredientsExpanded = false
@@ -107,51 +107,25 @@ class ProductActivity : AppCompatActivity() {
 
         setupStaticSections()
         setupDockControls()
-        observeViewModel()
-        if (productViewModel.state.value == null) load()
+        load()
     }
 
     private fun load() {
-        productViewModel.load(barcode)
-    }
-
-    private fun observeViewModel() {
-        productViewModel.state.observe(this) { state ->
-            when (state) {
-                ProductUiState.Loading -> showLoading()
-                is ProductUiState.Found -> showProduct(state.product)
-                ProductUiState.NotFound -> showState(
+        loadJob?.cancel()
+        loadJob = lifecycleScope.launch {
+            showLoading()
+            when (val result = ProductRepository.lookup(barcode)) {
+                is ProductResult.Found -> showProduct(result.product)
+                ProductResult.NotFound -> showState(
                     title = "Product not found",
                     message = "Sorry, we couldn't find barcode $barcode in the Open Food Facts database.",
                     canRetry = false
                 )
-                is ProductUiState.Failure -> showState(
+                is ProductResult.Failure -> showState(
                     title = "Couldn't load product",
-                    message = state.message,
+                    message = result.message,
                     canRetry = true
                 )
-            }
-        }
-        productViewModel.saveState.observe(this) { state ->
-            when (state) {
-                SaveState.Idle -> setSaving(false)
-                SaveState.Saving -> {
-                    setSaving(true)
-                    binding.tvDockError.visibility = View.GONE
-                }
-                is SaveState.Saved -> {
-                    setSaving(false)
-                    Toast.makeText(this, "Logged ${totalGrams().roundToInt()}g to your diary", Toast.LENGTH_SHORT).show()
-                    startActivity(
-                        Intent(this, MainActivity::class.java)
-                            .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-                    )
-                    finish()
-                }
-                is SaveState.Failed -> {
-                    setSaving(false)
-                    showDockError(state.message)
-                }
             }
         }
     }
@@ -542,7 +516,32 @@ class ProductActivity : AppCompatActivity() {
             quantityG = grams
         )
 
-        productViewModel.logProduct(request)
+        setSaving(true)
+        binding.tvDockError.visibility = View.GONE
+        lifecycleScope.launch {
+            try {
+                val response = ApiClient.api.logFood(request)
+                if (response.isSuccessful) {
+                    Toast.makeText(this@ProductActivity, "Logged ${grams.roundToInt()}g to your diary", Toast.LENGTH_SHORT).show()
+                    startActivity(
+                        Intent(this@ProductActivity, MainActivity::class.java)
+                            .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                    )
+                    finish()
+                } else if (response.code() != 401) {
+                    showDockError(
+                        parseErrorMessage(response.errorBody()?.string())
+                            ?: "Couldn't save this entry (error ${response.code()})."
+                    )
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                showDockError("Unable to reach the server: ${e.localizedMessage ?: "connection error"}")
+            } finally {
+                setSaving(false)
+            }
+        }
     }
 
     private fun setSaving(saving: Boolean) {
@@ -557,6 +556,15 @@ class ProductActivity : AppCompatActivity() {
     private fun showDockError(message: String) {
         binding.tvDockError.text = message
         binding.tvDockError.visibility = View.VISIBLE
+    }
+
+    private fun parseErrorMessage(json: String?): String? {
+        if (json.isNullOrEmpty()) return null
+        return try {
+            JSONObject(json).optString("message", "").takeIf { it.isNotEmpty() }
+        } catch (_: Exception) {
+            null
+        }
     }
 
     private fun hideKeyboard() {

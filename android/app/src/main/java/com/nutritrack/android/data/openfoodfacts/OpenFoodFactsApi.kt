@@ -13,6 +13,12 @@ interface OpenFoodFactsApi {
         @Query("fields") fields: String = FIELDS
     ): Response<OffProductResponse>
 
+    @GET("cgi/search.pl?search_simple=1&action=process&json=1&page_size=12")
+    suspend fun searchProducts(
+        @Query("search_terms") searchTerms: String,
+        @Query("fields") fields: String = FIELDS
+    ): Response<OffSearchResponse>
+
     companion object {
         const val FIELDS = "code,product_name,brands,quantity,serving_size,serving_quantity," +
             "image_front_url,ingredients_text,allergens_tags,nutriscore_grade,nova_group,nutriments"

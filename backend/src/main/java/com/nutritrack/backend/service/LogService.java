@@ -2,6 +2,8 @@ package com.nutritrack.backend.service;
 
 import com.nutritrack.backend.dto.DailyLogResponse;
 import com.nutritrack.backend.dto.LogFoodRequest;
+import com.nutritrack.backend.dto.LogHistoryResponse;
+import com.nutritrack.backend.dto.SavedMealResponse;
 import com.nutritrack.backend.model.DailyLog;
 import com.nutritrack.backend.model.FoodProduct;
 import com.nutritrack.backend.model.LogEntry;
@@ -20,8 +22,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -162,6 +167,70 @@ public class LogService {
         LogEntry entry = logEntryRepository.findByIdAndDailyLogUserId(entryId, userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Log entry not found"));
         logEntryRepository.delete(entry);
+    }
+
+    // ── Analysis page: one row per logged day in the last N days ─────────────
+
+    @Transactional(readOnly = true)
+    public LogHistoryResponse history(UUID userId, int days) {
+        int n = Math.min(Math.max(days, 1), 400);
+        LocalDate to = LocalDate.now(ZONE);
+        LocalDate from = to.minusDays(n - 1L);
+
+        List<LogHistoryResponse.Day> out = new ArrayList<>();
+        for (DailyLog log : dailyLogRepository.findByUserIdAndDateBetweenOrderByDateAsc(userId, from, to)) {
+            Nutrients totals = new Nutrients();
+            List<LogHistoryResponse.Item> items = new ArrayList<>();
+            for (LogEntry e : log.getEntries()) {
+                Nutrients c = e.getComputed() != null ? e.getComputed() : new Nutrients();
+                totals = totals.plus(c);
+                items.add(new LogHistoryResponse.Item(
+                        e.getFood().getBarcode(), e.getFood().getName(), e.getQuantityG(), c.getCalories()));
+            }
+            out.add(new LogHistoryResponse.Day(log.getDate(), totals, items));
+        }
+        return new LogHistoryResponse(from, to, out);
+    }
+
+    // ── My Meals page: meals created by the user (barcode "meal-..."), newest first ──
+
+    @Transactional(readOnly = true)
+    public List<SavedMealResponse> savedMeals(UUID userId) {
+        Map<String, SavedMealResponse> byBarcode = new LinkedHashMap<>();
+        for (LogEntry e : logEntryRepository.findMealEntriesByUser(userId)) {
+            FoodProduct food = e.getFood();
+            if (food == null || food.getBarcode() == null || byBarcode.containsKey(food.getBarcode())) continue;
+            byBarcode.put(food.getBarcode(), toSavedMeal(e, food));
+        }
+        return new ArrayList<>(byBarcode.values());
+    }
+
+    // ── Log Meal search: everything the user already logged (meals, scanned products, foods) ──
+
+    @Transactional(readOnly = true)
+    public List<SavedMealResponse> loggedFoods(UUID userId, String q) {
+        String needle = q == null ? "" : q.trim().toLowerCase();
+        Map<String, SavedMealResponse> byBarcode = new LinkedHashMap<>();
+        for (LogEntry e : logEntryRepository.findTop500ByDailyLogUserIdOrderByLoggedAtDesc(userId)) {
+            FoodProduct food = e.getFood();
+            if (food == null || food.getBarcode() == null || byBarcode.containsKey(food.getBarcode())) continue;
+            if (!needle.isEmpty()) {
+                String name = food.getName() == null ? "" : food.getName().toLowerCase();
+                String ingredients = food.getIngredients() == null ? "" : food.getIngredients().toLowerCase();
+                if (!name.contains(needle) && !ingredients.contains(needle)) continue;
+            }
+            byBarcode.put(food.getBarcode(), toSavedMeal(e, food));
+            if (byBarcode.size() >= 30) break;
+        }
+        return new ArrayList<>(byBarcode.values());
+    }
+
+    private static SavedMealResponse toSavedMeal(LogEntry e, FoodProduct food) {
+        Nutrients per100g = food.getPer100g() != null ? food.getPer100g() : new Nutrients();
+        double qty = e.getQuantityG();
+        return new SavedMealResponse(
+                e.getId(), food.getBarcode(), food.getName(), food.getIngredients(), food.getImageUrl(),
+                per100g, qty, per100g.scale(qty / 100.0), e.getLoggedAt());
     }
 
     private static DailyLogResponse.Entry toResponse(LogEntry entry) {

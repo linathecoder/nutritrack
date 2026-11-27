@@ -2,6 +2,7 @@ package com.nutritrack.backend.controller;
 
 import com.nutritrack.backend.dto.DailyLogResponse;
 import com.nutritrack.backend.dto.LogFoodRequest;
+import com.nutritrack.backend.dto.LogHistoryResponse;
 import com.nutritrack.backend.service.LogService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,13 @@ public class LogController {
     @GetMapping("/today")
     public ResponseEntity<DailyLogResponse> getToday(@AuthenticationPrincipal UUID userId) {
         return ResponseEntity.ok(logService.getToday(userId));
+    }
+
+    /** GET /api/logs/history?days=30 : one row per logged day over the last N days (Analysis page). */
+    @GetMapping("/history")
+    public ResponseEntity<LogHistoryResponse> history(@AuthenticationPrincipal UUID userId,
+                                                       @RequestParam(defaultValue = "30") int days) {
+        return ResponseEntity.ok(logService.history(userId, days));
     }
 
     @PostMapping
